@@ -1,9 +1,4 @@
 .DS_Store
 
 # Material pessoal/local — não publicar
-papers/00_MESTRADO_HOME.md
-papers/JEROEN_COMMUNICATION.md
-papers/MERGE_NOTES.md
-papers/NOTES_project_summary.md
-papers/PROJECT_IDEAS_JEROEN.md
-
+/local/

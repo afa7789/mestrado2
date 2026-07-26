@@ -1,0 +1,816 @@
+% =============================================================================
+% Pre-Projeto — Referências Completas (~60+ entries)
+% Área: Criptografia Aplicada / Sistemas Distribuídos / Blockchain
+% Organizado por tópico
+% =============================================================================
+
+% =============================================================================
+% 1. FUNDAMENTOS — Ethereum, State Trie, MPT
+% =============================================================================
+
+@misc{ethereum_yellow_paper,
+  title        = {Ethereum: A Secure Decentralised Generalised Transaction Ledger — Paris Version},
+  author       = {Gavin Wood},
+  year         = {2024},
+  howpublished = {\url{https://ethereum.github.io/yellowpaper/paper.pdf}},
+  note         = {Yellow Paper; State Trie / MPT specification}
+}
+
+@misc{eip1186_eth_getProof,
+  title        = {EIP-1186: RPC-Method to get Merkle Proofs (eth\_getProof)},
+  author       = {Simon Jentzsch and Christoph Jentzsch},
+  year         = {2018},
+  howpublished = {\url{https://eips.ethereum.org/EIPS/eip-1186}},
+  note         = {Account and storage proofs via MPT}
+}
+
+@misc{ethereum_mpt_docs,
+  title        = {Merkle Patricia Trie — Ethereum Developer Documentation},
+  author       = {{Ethereum Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://ethereum.org/en/developers/docs/data-structures-and-encoding/patricia-merkle-trie/}},
+  note         = {Canonical MPT reference}
+}
+
+@misc{verkle_trees_kuszmaul,
+  title        = {Verkle Trees},
+  author       = {John Kuszmaul},
+  year         = {2018},
+  howpublished = {\url{https://math.mit.edu/research/highschool/primes/materials/2018/Kuszmaul.pdf}},
+  note         = {MIT PRIMES; vector commitments for constant-size proofs}
+}
+
+@misc{verkle_trees_vitalik,
+  title        = {Verkle Trees},
+  author       = {Vitalik Buterin},
+  year         = {2021},
+  howpublished = {\url{https://vitalik.eth.limo/general/2021/06/18/verkle.html}}
+}
+
+@misc{eip6800_verkle,
+  title        = {EIP-6800: Ethereum State Using a Unified Verkle Tree},
+  author       = {{Ethereum Foundation}},
+  year         = {2023},
+  howpublished = {\url{https://eips.ethereum.org/EIPS/eip-6800}}
+}
+
+@misc{eip2935_historical_block_hashes,
+  title        = {EIP-2935: Serve Historical Block Hashes from State},
+  author       = {{Ethereum Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://eips.ethereum.org/EIPS/eip-2935}}
+}
+
+% =============================================================================
+% 2. STORAGE PROOFS & CONSENSUS PROOFS
+% =============================================================================
+
+@misc{historical_multichain_storage_proofs,
+  title        = {Historical and Multichain Storage Proofs},
+  author       = {{vlayer Labs}},
+  year         = {2024},
+  eprint       = {2411.00193},
+  archiveprefix = {arXiv},
+  note         = {Ethereum storage proofs, MPT, MMR, ZK, cross-chain}
+}
+
+@misc{herodotus_storage_proofs_docs,
+  title        = {Storage Proofs — Herodotus Developer Documentation},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://docs.herodotus.dev/herodotus-docs/developers/storage-proofs}},
+  note         = {Inclusion proofs + proofs of computation + ZK proofs}
+}
+
+@misc{herodotus_block_hash_accumulator,
+  title        = {Historical Block Hash Accumulator — Herodotus Protocol Design},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://docs.herodotus.dev/herodotus-docs/protocol-design/historical-block-hash-accumulator}},
+  note         = {ZK-STARK/Cairo; MMR (Keccak256 + Poseidon); equivalent to EIP-2935 without protocol changes}
+}
+
+@misc{herodotus_daloc,
+  title        = {DALOC: A Cross-Chain Prime Brokerage Protocol for Collateralized Credit},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/HerodotusDev/daloc-whitepaper}},
+  note         = {Intents-based DeFi protocol; trustless via storage proofs + consensus proofs + ZK}
+}
+
+@misc{bankai,
+  title        = {Stateless Light Clients for PoS Blockchains},
+  author       = {Paul Etscheit},
+  year         = {2024},
+  howpublished = {\url{https://bankai.xyz/}},
+  note         = {Consensus proving via recursive STARKs; stateless off-chain light client; Bankai}
+}
+
+@misc{starkware_storage_proofs_blog,
+  title        = {Proving Ethereum's State Using Storage Proofs on Starknet},
+  author       = {{StarkWare}},
+  year         = {2024},
+  howpublished = {\url{https://starkware.co/blog/proving-ethereums-state-on-starknet-with-herodotus/}}
+}
+
+@misc{herodotus_101,
+  title        = {Herodotus 101 — Introduction to Storage Proofs},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://herodotusdev.medium.com/herodotus-101-ab1dd19155cb}}
+}
+
+% --- Herodotus GitHub repos ---
+@misc{herodotus_trie_proofs,
+  title        = {trie-proofs — MPT Proofs Handler for Ethereum/Starknet (Rust)},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/HerodotusDev/trie-proofs}}
+}
+
+@misc{herodotus_hdp_cairo,
+  title        = {hdp-cairo — Herodotus Data Processor (Cairo)},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/HerodotusDev/hdp-cairo}}
+}
+
+@misc{herodotus_integrity,
+  title        = {integrity — Cairo STARK Proof Verifier on Starknet},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/HerodotusDev/integrity}}
+}
+
+@misc{herodotus_hdp_sp1,
+  title        = {hdp-sp1 — Herodotus Data Processor (SP1 zkVM)},
+  author       = {{Herodotus}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/HerodotusDev/hdp-sp1}}
+}
+
+% --- Bankai GitHub repos ---
+@misc{bankai_cairo,
+  title        = {bankai-cairo — Cairo Circuits for Ethereum Light Client},
+  author       = {{Bankai}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/bankaixyz/bankai-cairo}}
+}
+
+@misc{bankai_sp1_template,
+  title        = {bankai-sp1-template — SP1 zkVM Proving Template},
+  author       = {{Bankai}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/bankaixyz/bankai-sp1-template}}
+}
+
+% --- Ecosystem: Storage Proofs ---
+@misc{axiom_docs,
+  title        = {Axiom — ZK Coprocessor for Ethereum},
+  author       = {{Axiom}},
+  year         = {2024},
+  howpublished = {\url{https://docs.axiom.xyz/}}
+}
+
+@misc{lagrange_zk_coprocessor,
+  title        = {Lagrange — ZK Coprocessor Overview},
+  author       = {{Lagrange}},
+  year         = {2024},
+  howpublished = {\url{https://docs.lagrange.dev/zk-coprocessor/overview}}
+}
+
+@misc{brevis_zkcoprocessor,
+  title        = {Brevis — zkCoprocessor Documentation},
+  author       = {{Brevis}},
+  year         = {2024},
+  howpublished = {\url{https://coprocessor-docs.brevis.network/}}
+}
+
+@misc{relic_protocol,
+  title        = {Relic Protocol — Trustless Historical Ethereum State Access},
+  author       = {{Relic Protocol}},
+  year         = {2024},
+  howpublished = {\url{https://docs.relicprotocol.com/overview/intro-to-relic-protocol/}}
+}
+
+% =============================================================================
+% 3. CROSS-CHAIN BRIDGES & ZK INTEROP
+% =============================================================================
+
+@misc{zkbridge,
+  title        = {zkBridge: Trustless Cross-chain Bridges Made Practical},
+  author       = {Tiancheng Xie and Jiaheng Zhang and Zerui Cheng and Fan Zhang and Yupeng Zhang and Yongzheng Jia and Dan Boneh and Dawn Song},
+  year         = {2022},
+  eprint       = {2210.00264},
+  archiveprefix = {arXiv},
+  note         = {CCS 2022; trustless bridges via zk-SNARKs over block headers}
+}
+
+@misc{zendoo,
+  title        = {Zendoo: a zk-SNARK Verifiable Cross-Chain Transfer Protocol},
+  author       = {Alberto Garoffolo and Dmytro Kaidalov and Roman Oliynykov},
+  year         = {2020},
+  eprint       = {2002.01847},
+  archiveprefix = {arXiv},
+  note         = {Decoupled and decentralized sidechains via zk-SNARKs}
+}
+
+@misc{electron_zkbridge,
+  title        = {Electron zkBridge 1.0 Mainnet Launch},
+  author       = {{Electron Labs}},
+  year         = {2024},
+  howpublished = {\url{https://medium.com/electron-labs/electron-zkbridge-1-0-mainnet-launch-3cd1e1f8f37d}},
+  note         = {zk light client: Ethereum ↔ NEAR via SNARK}
+}
+
+% =============================================================================
+% 4. CONSENSUS & LIGHT CLIENTS
+% =============================================================================
+
+@misc{consensus_age_of_blockchains,
+  title        = {Consensus in the Age of Blockchains},
+  author       = {Shehar Bano and Alberto Sonnino and Mustafa Al-Bassam and Sarah Azouvi and Patrick McCorry and Sarah Meiklejohn and George Danezis},
+  year         = {2017},
+  eprint       = {1711.03936},
+  archiveprefix = {arXiv},
+  note         = {Survey on consensus mechanisms}
+}
+
+@misc{snark_light_clients_sok,
+  title        = {SoK: SNARK Light Clients — A Survey of SNARK-based Blockchain Light Clients},
+  author       = {{Various}},
+  year         = {2021},
+  eprint       = {2021/1657},
+  howpublished = {IACR ePrint}
+}
+
+@misc{altair_light_client_sync,
+  title        = {Altair Light Client — Sync Protocol Specification},
+  author       = {{Ethereum Foundation}},
+  year         = {2021},
+  howpublished = {\url{https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md}},
+  note         = {PoS light client via sync committee}
+}
+
+@misc{helios,
+  title        = {Helios — Trustless Ethereum Light Client (Rust)},
+  author       = {{a16z}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/a16z/helios}}
+}
+
+@misc{flyclient,
+  title        = {FlyClient: Super-Light Clients for Cryptocurrencies},
+  author       = {Benedikt B{\"u}nz and Lucianna Kiffer and Loi Luu and Mahdi Zamani},
+  year         = {2019},
+  eprint       = {2019/226},
+  howpublished = {IACR ePrint},
+  note         = {Logarithmic header download for efficient cross-chain verification}
+}
+
+@misc{nipopows,
+  title        = {Non-Interactive Proofs of Proof-of-Work},
+  author       = {Aggelos Kiayias and Andrew Miller and Dionysis Zindros},
+  year         = {2017},
+  eprint       = {2017/963},
+  howpublished = {IACR ePrint},
+  note         = {Succinct PoW proofs; logarithmic cost}
+}
+
+@misc{popos,
+  title        = {Proofs of Proof-of-Stake with Sublinear Complexity},
+  author       = {Shashank Agrawal and Joachim Neu and Ertem Nusret Tas and Dionysis Zindros},
+  year         = {2022},
+  eprint       = {2022/1642},
+  howpublished = {IACR ePrint},
+  note         = {First formal sublinear PoPoS definition}
+}
+
+@misc{casper_ffg,
+  title        = {Casper the Friendly Finality Gadget},
+  author       = {Vitalik Buterin and Virgil Griffith},
+  year         = {2017},
+  eprint       = {1710.09437},
+  archiveprefix = {arXiv}
+}
+
+@misc{gasper,
+  title        = {Combining GHOST and Casper},
+  author       = {Vitalik Buterin and Diego Hernandez and Thor Kamphefner and Khiem Pham and Zhi Qiao and Danny Ryan and Juhyeok Sin and Ying Wang and Yan X Zhang},
+  year         = {2020},
+  eprint       = {2003.03052},
+  archiveprefix = {arXiv},
+  note         = {Gasper: LMD-GHOST + Casper FFG; Ethereum finality mechanism}
+}
+
+@misc{succinct_telepathy,
+  title        = {Succinct Telepathy — Light Client zk On-Chain},
+  author       = {{Succinct Labs}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/succinctlabs/telepathy-contracts}},
+  note         = {Proof of Consensus via sync committee zk light client}
+}
+
+% =============================================================================
+% 5. SNARKs / STARKs — FUNDAMENTOS
+% =============================================================================
+
+@misc{groth16,
+  title        = {On the Size of Pairing-based Non-interactive Arguments},
+  author       = {Jens Groth},
+  year         = {2016},
+  eprint       = {2016/260},
+  howpublished = {IACR ePrint; EUROCRYPT 2016},
+  note         = {Compact zk-SNARK: 3 group elements, O(1) verification}
+}
+
+@misc{marlin,
+  title        = {Marlin: Preprocessing zkSNARKs with Universal and Updatable SRS},
+  author       = {Alessandro Chiesa and Yuncong Hu and Mary Maller and Pratyush Mishra and Psi Vesely and Nicholas Ward},
+  year         = {2019},
+  eprint       = {2019/1047},
+  howpublished = {IACR ePrint}
+}
+
+@misc{halo,
+  title        = {Halo: Recursive Proof Composition without a Trusted Setup},
+  author       = {Sean Bowe and Jack Grigg and Daira Hopwood},
+  year         = {2019},
+  eprint       = {2019/1021},
+  howpublished = {IACR ePrint}
+}
+
+@misc{halo2_book,
+  title        = {The halo2 Book},
+  author       = {{Zcash / Electric Coin Co.}},
+  year         = {2024},
+  howpublished = {\url{https://zcash.github.io/halo2/}},
+  note         = {PLONKish arithmetization + accumulation}
+}
+
+@misc{starks,
+  title        = {STARKs: Scalable, Transparent, and Post-Quantum Secure Computational Integrity},
+  author       = {Eli Ben-Sasson and Iddo Bentov and Yinon Horesh and Michael Riabzev},
+  year         = {2018},
+  eprint       = {2018/046},
+  howpublished = {IACR ePrint}
+}
+
+@misc{fri,
+  title        = {Fast Reed-Solomon Interactive Oracle Proofs of Proximity},
+  author       = {Eli Ben-Sasson and Iddo Bentov and Yinon Horesh and Michael Riabzev},
+  year         = {2018},
+  howpublished = {ECCC Report 2017/134; ICALP 2018},
+  note         = {\url{https://eccc.weizmann.ac.il/report/2017/134/}}
+}
+
+@misc{kzg,
+  title        = {Constant-Size Commitments to Polynomials and Their Applications},
+  author       = {Aniket Kate and Gregory M. Zaverucha and Ian Goldberg},
+  year         = {2010},
+  howpublished = {ASIACRYPT 2010},
+  note         = {\url{https://www.iacr.org/archive/asiacrypt2010/6477178/6477178.pdf}}
+}
+
+@misc{nova,
+  title        = {Nova: Recursive Zero-Knowledge Arguments from Folding Schemes},
+  author       = {Abhiram Kothapalli and Srinath Setty and Ioanna Tzialla},
+  year         = {2021},
+  eprint       = {2021/370},
+  howpublished = {IACR ePrint},
+  note         = {IVC via folding; low-cost recursion for aggregating proofs}
+}
+
+% =============================================================================
+% 6. AZTEC — PLONK, PLOOKUP, Protocol
+% =============================================================================
+
+@misc{aztec_plonk,
+  title        = {PLONK: Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge},
+  author       = {Ariel Gabizon and Zachary J. Williamson and Oana Ciobotaru},
+  year         = {2019},
+  eprint       = {2019/953},
+  howpublished = {IACR ePrint}
+}
+
+@misc{aztec_plookup,
+  title        = {PLOOKUP: A Simplified Polynomial Protocol for Lookup Tables},
+  author       = {Ariel Gabizon and Zachary J. Williamson},
+  year         = {2020},
+  eprint       = {2020/315},
+  howpublished = {IACR ePrint}
+}
+
+@misc{aztec_protocol_whitepaper,
+  title        = {The AZTEC Protocol},
+  author       = {{Aztec Network}},
+  year         = {2023},
+  howpublished = {\url{https://github.com/AztecProtocol/aztec-v1/blob/develop/AZTEC.pdf}},
+  note         = {Privacy-preserving ZK rollup protocol}
+}
+
+@misc{turbo_plonk,
+  title        = {Turbo-PLONK},
+  author       = {{Aztec Network}},
+  year         = {2020},
+  howpublished = {\url{https://docs.zkproof.org/pages/standards/accepted-workshop3/proposal-turbo_plonk.pdf}}
+}
+
+@misc{halo_infinite,
+  title        = {Halo Infinite: Proof-Carrying Data from Additive Polynomial Commitments},
+  author       = {{Electric Coin Co.}},
+  year         = {2020},
+  eprint       = {2020/1536},
+  howpublished = {IACR ePrint}
+}
+
+@misc{shplonk,
+  title        = {SHPLONK},
+  author       = {{Various}},
+  year         = {2020},
+  eprint       = {2020/081},
+  howpublished = {IACR ePrint}
+}
+
+@misc{zeromorph,
+  title        = {Zeromorph: Zero-Knowledge Multilinear-Evaluation Proofs from Homomorphic Univariate Commitments},
+  author       = {{Various}},
+  year         = {2023},
+  eprint       = {2023/917},
+  howpublished = {IACR ePrint}
+}
+
+@misc{aztec_yellow_paper,
+  title        = {Aztec Yellow Paper — Protocol Specification},
+  author       = {{Aztec Network}},
+  year         = {2024},
+  howpublished = {\url{https://hackmd.io/@aztec-network/ByzgNxBfd}}
+}
+
+% =============================================================================
+% 7. MIDEN — STARKs, RPO, Encryption
+% =============================================================================
+
+@misc{miden_adding_zk_to_starks,
+  title        = {A Note on Adding Zero-Knowledge to STARKs},
+  author       = {{Miden Team}},
+  year         = {2024},
+  eprint       = {2024/1037},
+  howpublished = {IACR ePrint}
+}
+
+@misc{miden_stark_signatures_rpo,
+  title        = {STARK-based Signatures from the RPO Permutation},
+  author       = {{Miden Team}},
+  year         = {2024},
+  eprint       = {2024/1553},
+  howpublished = {IACR ePrint}
+}
+
+@misc{miden_arithmetization_oriented_encryption,
+  title        = {Arithmetization-Oriented Encryption},
+  author       = {{Miden Team}},
+  year         = {2023},
+  eprint       = {2023/1668},
+  howpublished = {IACR ePrint}
+}
+
+@misc{miden_vm_spec,
+  title        = {Miden VM — Technical Specification},
+  author       = {{Polygon Miden}},
+  year         = {2024},
+  howpublished = {\url{https://docs.miden.xyz/reference/miden-vm/}},
+  note         = {AIR constraints, instruction set; no standalone PDF}
+}
+
+@misc{miden_protocol_spec,
+  title        = {Miden Protocol — Reference},
+  author       = {{Polygon Miden}},
+  year         = {2024},
+  howpublished = {\url{https://docs.miden.xyz/reference/protocol}}
+}
+
+% =============================================================================
+% 8. zkVMs — RISC Zero, SP1, Cairo, Jolt, Nexus, Valida, Plonky2/3
+% =============================================================================
+
+@misc{risczero_whitepaper,
+  title        = {RISC Zero zkVM — Proof System in Detail},
+  author       = {{RISC Zero}},
+  year         = {2024},
+  howpublished = {\url{https://dev.risczero.com/proof-system-in-detail.pdf}},
+  note         = {zk-STARK + RISC-V zkVM}
+}
+
+@misc{sp1,
+  title        = {SP1 — zkVM (Rust)},
+  author       = {{Succinct Labs}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/succinctlabs/sp1}},
+  note         = {High-performance RISC-V zkVM}
+}
+
+@misc{cairo_eprint,
+  title        = {Cairo — a Turing-complete STARK-friendly CPU Architecture},
+  author       = {Lior Goldberg and Shahar Papini and Michael Riabzev},
+  year         = {2021},
+  eprint       = {2021/1063},
+  howpublished = {IACR ePrint}
+}
+
+@misc{jolt,
+  title        = {Jolt — zkVM via Lookups (a16z)},
+  author       = {{a16z crypto}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/a16z/jolt}},
+  note         = {RISC-V zkVM; Lasso + sum-check; lookup singularity}
+}
+
+@misc{jolt_formal,
+  title        = {SNARKs for Virtual Machines via Lookups},
+  author       = {Arasu Arun and Srinath Setty and Justin Thaler},
+  year         = {2023},
+  eprint       = {2023/1217},
+  howpublished = {IACR ePrint; EUROCRYPT 2024}
+}
+
+@misc{valida_isa,
+  title        = {Valida ISA Specification v1.0},
+  author       = {{Lita / Delendum}},
+  year         = {2025},
+  eprint       = {2505.08114},
+  archiveprefix = {arXiv},
+  note         = {Register-less ISA optimized for succinct execution proofs}
+}
+
+@misc{nexus_zkvm,
+  title        = {Nexus zkVM 1.0 — Enabling Verifiable Computation},
+  author       = {{Nexus}},
+  year         = {2024},
+  howpublished = {\url{https://whitepaper.nexus.xyz/}},
+  note         = {Modular zkVM; folding/recursion for verifiable computation at scale}
+}
+
+@misc{plonky2,
+  title        = {Plonky2 Whitepaper},
+  author       = {{Polygon Zero}},
+  year         = {2022},
+  howpublished = {\url{https://github.com/0xPolygonZero/plonky2/blob/main/plonky2/plonky2.pdf}},
+  note         = {Recursive FRI+PLONK on Goldilocks field}
+}
+
+@misc{plonky3,
+  title        = {Plonky3 — Modular PIOP Toolkit},
+  author       = {{Polygon Zero}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/Plonky3/Plonky3}}
+}
+
+% =============================================================================
+% 9. DEVCOM ZK TALKS — Semaphore, PLUME, Veridise, WAKU, UniRep, Trustless NN
+% =============================================================================
+
+@misc{semaphore_whitepaper,
+  title        = {Semaphore: Zero-Knowledge Signaling on Ethereum},
+  author       = {{Privacy \& Scaling Explorations (PSE)}},
+  year         = {2023},
+  howpublished = {Whitepaper v1}
+}
+
+@misc{plume_ecdsa_nullifier,
+  title        = {PLUME: ECDSA Nullifier for Anonymous Signatures},
+  author       = {{Various}},
+  year         = {2022},
+  eprint       = {2022/1255},
+  howpublished = {IACR ePrint}
+}
+
+@misc{veridise_underconstrained_circuits,
+  title        = {Underconstrained Circuits in Zero-Knowledge Proofs},
+  author       = {{Veridise}},
+  year         = {2023},
+  howpublished = {Veridise Research}
+}
+
+@misc{waku_rln_relay,
+  title        = {WAKU RLN Relay: Rate-Limiting Nullifiers for Decentralized Communications},
+  author       = {{WAKU Team}},
+  year         = {2022},
+  eprint       = {2207.00117},
+  archiveprefix = {arXiv}
+}
+
+@misc{unirep_pse_report,
+  title        = {UniRep: Universal Reputation — PSE Technical Report},
+  author       = {{Privacy \& Scaling Explorations (PSE)}},
+  year         = {2023},
+  howpublished = {PSE Technical Report}
+}
+
+@misc{trustless_nn_inference,
+  title        = {Trustless Neural Network Inference via Zero-Knowledge Proofs},
+  author       = {{Various}},
+  year         = {2022},
+  eprint       = {2210.08674},
+  archiveprefix = {arXiv}
+}
+
+@misc{vampire_zksnark,
+  title        = {Vampire: A Universal zkSNARK},
+  author       = {{Various}},
+  year         = {2022},
+  eprint       = {2022/406},
+  howpublished = {IACR ePrint}
+}
+
+@misc{halo_recursive_proof_composition_devcon,
+  title        = {Halo: Recursive Proof Composition without a Trusted Setup},
+  author       = {Sean Bowe and Jack Grigg and Daira Hopwood},
+  year         = {2019},
+  howpublished = {Devcon / Electric Coin Co.}
+}
+
+% =============================================================================
+% 10. INTENTS & INTEROPERABILIDADE
+% =============================================================================
+
+@misc{erc7683,
+  title        = {ERC-7683: Cross Chain Intents},
+  author       = {{Ethereum Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://eips.ethereum.org/EIPS/eip-7683}},
+  note         = {Standard interface for cross-chain intent protocols}
+}
+
+@misc{erc4337,
+  title        = {ERC-4337: Account Abstraction Using Alt Mempool},
+  author       = {{Ethereum Foundation}},
+  year         = {2023},
+  howpublished = {\url{https://eips.ethereum.org/EIPS/eip-4337}}
+}
+
+@misc{suave,
+  title        = {The Future of MEV is SUAVE},
+  author       = {{Flashbots Collective}},
+  year         = {2023},
+  howpublished = {\url{https://writings.flashbots.net/the-future-of-mev-is-suave}},
+  note         = {Cross-domain intent aggregation via sequencing layer}
+}
+
+@misc{anoma,
+  title        = {Anoma Whitepaper: A Unified Architecture for Full-Stack Decentralised Applications},
+  author       = {Christopher Goes and Awa Sun Yin and Adrian Brink},
+  year         = {2022},
+  howpublished = {\url{https://github.com/anoma/whitepaper/blob/main/whitepaper.md}},
+  note         = {Intents as partial transactions resolved by solvers}
+}
+
+@misc{across_intents,
+  title        = {Intents Architecture in Across},
+  author       = {{Across Protocol}},
+  year         = {2024},
+  howpublished = {\url{https://docs.across.to/concepts/intents-architecture-in-across}},
+  note         = {Modular: RFQ, relayers, settlement; ZK in V4}
+}
+
+@misc{uniswapx,
+  title        = {UniswapX Whitepaper},
+  author       = {Hayden Adams and Noah Zinsmeister},
+  year         = {2023},
+  howpublished = {\url{https://app.uniswap.org/whitepaper-uniswapx.pdf}},
+  note         = {Signed off-chain orders; Dutch auction; cross-chain extension}
+}
+
+% =============================================================================
+% 11. IBC / CROSS-CHAIN MESSAGING
+% =============================================================================
+
+@misc{cosmos_ibc,
+  title        = {Cosmos IBC — Interchain Standards},
+  author       = {{Interchain Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/cosmos/ibc}},
+  note         = {TAO layer; ICS-20/27; state verification based message passing}
+}
+
+@misc{layerzero_v2,
+  title        = {LayerZero V2 Whitepaper},
+  author       = {Bryan Pellegrino and Ryan Zarick and Caleb Banister},
+  year         = {2024},
+  howpublished = {\url{https://layerzero.network/publications/LayerZero_Whitepaper_V2.1.1.pdf}},
+  note         = {Omnichain messaging; configurable DVNs; separated verification/execution}
+}
+
+@misc{hyperlane,
+  title        = {Hyperlane Documentation — Permissionless Interchain Messaging},
+  author       = {{Hyperlane}},
+  year         = {2024},
+  howpublished = {\url{https://docs.hyperlane.xyz/}},
+  note         = {Message passing, Warp Routes; configurable ISMs}
+}
+
+@misc{chainlink_ccip,
+  title        = {Chainlink CCIP Documentation},
+  author       = {{Chainlink}},
+  year         = {2024},
+  howpublished = {\url{https://docs.chain.link/ccip}},
+  note         = {Commit/Execution layers; defense-in-depth via oracle networks}
+}
+
+@misc{chainlink_2,
+  title        = {Chainlink 2.0: Next Steps in the Evolution of Decentralized Oracle Networks},
+  author       = {Ari Juels and Lorenz Breidenbach and Christian Cachin and others},
+  year         = {2021},
+  howpublished = {\url{https://research.chain.link/whitepaper-v2.pdf}},
+  note         = {DONs as blockchain abstraction layer for off-chain computation}
+}
+
+% =============================================================================
+% 12. TRUSTLESS INTEROP & FORMAL FOUNDATIONS
+% =============================================================================
+
+@misc{formal_foundation_blockchain_rollups,
+  title        = {Formal Foundation of Blockchain Rollups},
+  author       = {{Various}},
+  year         = {2024},
+  eprint       = {2406.16219},
+  archiveprefix = {arXiv}
+}
+
+@misc{plonk_eprint_duplicate,
+  title        = {PLONK: Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge},
+  author       = {Ariel Gabizon and Zachary J. Williamson and Oana Ciobotaru},
+  year         = {2019},
+  eprint       = {2019/953},
+  howpublished = {IACR ePrint}
+}
+
+@misc{uniswap_v3,
+  title        = {Uniswap v3 Core Whitepaper},
+  author       = {Hayden Adams and Noah Zinsmeister and Moody Salem and River Keefer and Dan Robinson},
+  year         = {2021},
+  howpublished = {Uniswap Labs}
+}
+
+% =============================================================================
+% 13. IC3 — RESEARCH CONSORTIUM
+% =============================================================================
+
+@misc{ic3,
+  title        = {IC3 — Initiative for Cryptocurrencies and Contracts},
+  author       = {{IC3}},
+  year         = {2024},
+  howpublished = {\url{https://ic3research.org/}},
+  note         = {Academic consortium: 13 universities; foundational blockchain research}
+}
+
+@misc{ic3_publications,
+  title        = {IC3 — Publications},
+  author       = {{IC3}},
+  year         = {2024},
+  howpublished = {\url{https://ic3research.wordpress.com/publications/}}
+}
+
+@misc{crypto_ai_survey_ic3,
+  title        = {Crypto x AI Survey},
+  author       = {{IC3}},
+  year         = {2026},
+  howpublished = {\url{https://aic3.io/}},
+  note         = {Systematization of crypto×AI intersection}
+}
+
+% =============================================================================
+% 14. YOUTUBE / PLAYLISTS (eventos, talks)
+% =============================================================================
+
+@misc{devcon_archive,
+  title        = {Devcon Archive},
+  author       = {{Ethereum Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://archive.devcon.org/}},
+  note         = {Video library; filterable by tags (Applied Cryptography, ZK, Privacy, Layer 2)}
+}
+
+@misc{playlist_trustless,
+  title        = {trustless:// — YouTube Playlist},
+  author       = {{@ERC-4337}},
+  year         = {2024},
+  howpublished = {\url{https://www.youtube.com/watch?v=EFiSyP-Zu7s&list=PLMf-2qLTukXoyHFmJr5D6XRTEyh_-9z17}},
+  note         = {~35 videos; rollups, trustless systems, account abstraction}
+}
+
+@misc{playlist_decentralization_matters,
+  title        = {Why Decentralization Matters — YouTube Playlist},
+  author       = {{Ethereum Foundation}},
+  year         = {2024},
+  howpublished = {\url{https://www.youtube.com/watch?v=haxfI3A-E4g&list=PLaM7G4Llrb7wzshzdWkwmddVJYagkkEgz}},
+  note         = {~19 videos; curated by EF}
+}
+
+@misc{playlist_devcon6_zk,
+  title        = {DevCon 6 — ZKPs: Privacy, Identity, Infrastructure \& More},
+  author       = {{Ethereum Foundation}},
+  year         = {2022},
+  howpublished = {\url{https://www.youtube.com/watch?v=umLmjsi_GbY&list=PLaM7G4Llrb7x5JgkfCN9kf7IB6QtomyCu}},
+  note         = {Official ZKP track; Bogotá 2022}
+}

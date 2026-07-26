@@ -1,0 +1,286 @@
+% =============================================================================
+% Pre-Projeto de Mestrado — PPGCC / DCC / UFMG
+% Área: Criptografia Aplicada / Sistemas Distribuídos / Blockchain
+% Orientador: Prof. Jeroen van de Graaf
+% =============================================================================
+\documentclass[12pt,a4paper]{article}
+
+% --- Pacotes ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{cite}
+\usepackage{lipsum}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+
+\geometry{top=3cm, bottom=2.5cm, left=3cm, right=2.5cm}
+\onehalfspacing
+
+% --- Metadados do PDF ---
+\hypersetup{
+  pdftitle={Pre-Projeto de Mestrado — Criptografia Aplicada a Sistemas Distribuídos e Blockchain},
+  pdfauthor={Arthur de Freitas Abeilice},
+  pdfsubject={Mestrado em Ciência da Computação},
+  pdfkeywords={zero-knowledge proofs, blockchain, cross-chain, storage proofs, consensus proofs, criptografia aplicada}
+}
+
+% --- Cabeçalho ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Pre-Projeto de Mestrado — PPGCC/UFMG}
+\fancyhead[R]{\small Abeilice, A.F.}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% =============================================================================
+\begin{document}
+
+% --- Capa ---
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+
+  {\LARGE \textbf{Pré-Projeto de Mestrado}\par}
+  \vspace{1.5cm}
+
+  {\Large \textbf{Provas de Conhecimento-Zero para Interoperabilidade}\\
+           \textbf{Descentralizada entre Blockchains}\par}
+  \vspace{0.5cm}
+  \textit{(Zero-Knowledge Proofs for Decentralized Blockchain Interoperability)}
+
+  \vspace{2cm}
+
+  {\large \textbf{Arthur de Freitas Abeilice}\par}
+  \vspace{0.5cm}
+  {\large Orientador: Prof. Dr. Jeroen van de Graaf\par}
+
+  \vspace{2cm}
+
+  {\large Programa de Pós-Graduação em Ciência da Computação\\
+           Departamento de Ciência da Computação\\
+           Universidade Federal de Minas Gerais\par}
+
+  \vspace{1cm}
+  {\large Belo Horizonte — MG\\
+           Julho de 2026\par}
+
+  \vfill
+\end{titlepage}
+
+% --- Resumo ---
+\begin{abstract}
+\lipsum[1-2]
+
+\noindent\textbf{Palavras-chave:} Provas de conhecimento-zero, interoperabilidade entre blockchains, provas de armazenamento, provas de consenso, sistemas distribuídos.
+\end{abstract}
+
+\newpage
+
+% --- Abstract (English) ---
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+\lipsum[1-2]
+
+\noindent\textbf{Keywords:} Zero-knowledge proofs, blockchain interoperability, storage proofs, consensus proofs, distributed systems.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+% 1. INTRODUÇÃO
+% =============================================================================
+\section{Introdução}
+
+\lipsum[3-5]
+
+\subsection{Contextualização}
+
+\lipsum[6-7]
+
+\subsection{Motivação}
+
+\lipsum[8-9]
+
+\subsection{Objetivos}
+
+\subsubsection{Objetivo Geral}
+\lipsum[10]
+
+\subsubsection{Objetivos Específicos}
+\begin{enumerate}[label=(\roman*)]
+  \item \lipsum[11][1-2]
+  \item \lipsum[11][3-4]
+  \item \lipsum[11][5-6]
+  \item \lipsum[12][1-2]
+\end{enumerate}
+
+\subsection{Estrutura do Documento}
+\lipsum[13]
+
+% =============================================================================
+% 2. FUNDAMENTAÇÃO TEÓRICA
+% =============================================================================
+\section{Fundamentação Teórica e Revisão da Literatura}
+
+\lipsum[14]
+
+\subsection{Blockchain e Sistemas Distribuídos}
+
+A arquitetura fundamental de blockchains como sistemas distribuídos é estabelecida pelo
+\textit{Ethereum Yellow Paper} \cite{ethereum_yellow_paper}, que define o modelo de
+estado baseado em Merkle Patricia Trie. O problema de consenso em sistemas
+distribuídos é extensivamente tratado por Bano et al. \cite{consensus_age_of_blockchains}.
+
+\lipsum[15-16]
+
+\subsection{Provas de Conhecimento-Zero}
+
+O protocolo PLONK \cite{aztec_plonk} estabelece uma base para argumentos de
+conhecimento não-interativos. Extensões como PLOOKUP \cite{aztec_plookup}
+introduzem tabelas de consulta (\textit{lookup tables}) para otimização de
+circuitos. O protocolo Aztec \cite{aztec_protocol_whitepaper} aplica ZK para
+privacidade em rollups.
+
+\paragraph{Sistemas baseados em STARKs.} A plataforma Miden introduz avanços em
+STARKs com foco em máquinas virtuais \cite{miden_arithmetization_oriented_encryption},
+adição de conhecimento-zero a STARKs \cite{miden_adding_zk_to_starks}, e
+assinaturas baseadas em funções de hash RPO \cite{miden_stark_signatures_rpo}.
+
+\lipsum[17]
+
+\subsection{Interoperabilidade entre Blockchains}
+
+A ponte zkBridge \cite{zkbridge} demonstra a viabilidade de pontes
+\textit{trustless} utilizando provas ZK. O protocolo Zendoo
+\cite{zendoo} propõe sidechains desacopladas com verificabilidade via
+zk-SNARKs. A fundação formal de rollups é estabelecida em \cite{formal_foundation_blockchain_rollups}.
+
+\lipsum[18]
+
+\subsection{Provas de Armazenamento e Consenso}
+
+Herodotus introduz provas de armazenamento históricas e \textit{multichain}
+\cite{historical_multichain_storage_proofs}, com o comitê DALOC para
+disponibilidade de dados \cite{herodotus_daloc}. O protocolo Bankai
+\cite{bankai} propõe provas de consenso para clientes leves. Uma
+sistematização do conhecimento sobre clientes leves baseados em SNARKs
+é apresentada em \cite{snark_light_clients_sok}.
+
+\lipsum[19]
+
+\subsection{Privacidade e Anonimato em Blockchain}
+
+O Semaphore \cite{semaphore_whitepaper} fornece sinalização anônima
+com ZK. UniRep \cite{unirep_pse_report} estende o conceito para
+reputação universal. PLUME \cite{plume_ecdsa_nullifier} introduz
+\textit{nullifiers} baseados em ECDSA. WAKU RLN \cite{waku_rln_relay}
+aplica \textit{rate-limiting nullifiers} para comunicação descentralizada.
+
+\lipsum[20]
+
+\subsection{Ferramentas e Técnicas de Verificação}
+
+A Veridise \cite{veridise_underconstrained_circuits} analisa circuitos
+sub-restritos em provas ZK. O Halo \cite{halo_recursive_proof_composition}
+propõe composição recursiva de provas sem trusted setup. Vampire
+\cite{vampire_zksnark} apresenta um zkSNARK universal. Inferência de
+redes neurais com ZK é explorada em \cite{trustless_nn_inference}.
+
+\lipsum[21]
+
+% =============================================================================
+% 3. PROBLEMA DE PESQUISA
+% =============================================================================
+\section{Problema de Pesquisa}
+
+\lipsum[22-23]
+
+\subsection{Hipótese}
+
+\lipsum[24]
+
+\subsection{Questões de Pesquisa}
+\begin{enumerate}
+  \item \lipsum[25][1-2]
+  \item \lipsum[25][3-4]
+  \item \lipsum[26][1-2]
+\end{enumerate}
+
+% =============================================================================
+% 4. METODOLOGIA
+% =============================================================================
+\section{Metodologia Proposta}
+
+\lipsum[27-28]
+
+\subsection{Etapas da Pesquisa}
+\begin{enumerate}
+  \item \textbf{Revisão sistemática:} \lipsum[29][1-2]
+  \item \textbf{Definição formal:} \lipsum[29][3-4]
+  \item \textbf{Prototipação:} \lipsum[30][1-2]
+  \item \textbf{Avaliação experimental:} \lipsum[30][3-4]
+\end{enumerate}
+
+\subsection{Ferramentas e Ambiente}
+
+\lipsum[31]
+
+% =============================================================================
+% 5. CONTRIBUIÇÕES ESPERADAS
+% =============================================================================
+\section{Contribuições Esperadas}
+
+\lipsum[32-33]
+
+\begin{itemize}
+  \item \lipsum[34][1-2]
+  \item \lipsum[34][3-4]
+  \item \lipsum[35][1-2]
+\end{itemize}
+
+% =============================================================================
+% 6. CRONOGRAMA
+% =============================================================================
+\section{Cronograma (2 meses)}
+
+\lipsum[36]
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{Atividade} & \textbf{S1} & \textbf{S2} & \textbf{S3} & \textbf{S4} & \textbf{S5} & \textbf{S6} & \textbf{S7} & \textbf{S8} \\
+    \hline
+    Revisão da literatura        & $\bullet$ & $\bullet$ & $\bullet$ &           &           &           &           &           \\
+    \hline
+    Definição formal do problema &           & $\bullet$ & $\bullet$ & $\bullet$ &           &           &           &           \\
+    \hline
+    Desenvolvimento do modelo    &           &           & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ &           &           \\
+    \hline
+    Prototipação e experimentos  &           &           &           & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ &           \\
+    \hline
+    Escrita do pré-projeto       & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+    \hline
+    Revisão e entrega            &           &           &           &           &           &           & $\bullet$ & $\bullet$ \\
+    \hline
+  \end{tabular}
+  \caption{Cronograma de 8 semanas para o pré-projeto.}
+\end{table}
+
+% =============================================================================
+% REFERÊNCIAS
+% =============================================================================
+\newpage
+\bibliographystyle{abbrv}
+\bibliography{references}
+
+\end{document}

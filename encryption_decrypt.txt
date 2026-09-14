@@ -1,0 +1,4 @@
+https://ethereum.stackexchange.com/questions/148254/now-that-eth-decrypt-and-eth-getencryptionpublickey-are-deprecated-is-there-a-g
+https://metamask.io/news/metamask-api-method-deprecation
+https://ethereum-magicians.org/t/pretty-good-privacy-pgp-gpg-on-chain-keyserver/14158
+https://ethereum-magicians.org/t/eip-5630-encryption-and-decryption/10761/4

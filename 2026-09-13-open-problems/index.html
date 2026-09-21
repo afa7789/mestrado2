@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ideias de pesquisa com papers e experimentos: certificado de garantia por faixa, acumuladores KZG, revogação e carteiras.">
+  <title>Ideias de pesquisa — ZK, swaps e empréstimos</title>
+  <style>
+    body { max-width: 76ch; margin: 0 auto; padding: 1rem; font-family: system-ui, sans-serif; line-height: 1.6; overflow-wrap: break-word; }
+    h1, h2, h3 { line-height: 1.25; }
+    section { margin-block: 3rem; }
+    li { margin-block: .75rem; }
+    summary { cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: .4rem; border-bottom: 1px solid; vertical-align: top; }
+    footer { margin-top: 3rem; border-top: 1px solid; }
+  </style>
+</head>
+<body>
+  <header id="inicio">
+    <h1>Ideias de pesquisa em ZK e Web3</h1>
+    <p>ZK, criptografia e Web3 · Atualizado em <time datetime="2026-09-15">15 de setembro de 2026</time></p>
+    <p><strong>Ajuste de 15/09/2026:</strong> as ideias 1 e 2 (Zswap) foram removidas a pedido da orientação; a numeração original 3–6 foi preservada para manter a referência da conversa.</p>
+    <p>Quatro candidatas sobre empréstimos privados, acumuladores KZG, revogação e carteiras. Cada ideia parte de um paper e muda uma peça específica. A avaliação abaixo compara os recortes para um mestrado.</p>
+    <nav aria-label="Propostas atuais">
+      <ul>
+        <li><a href="#loan-interval">Ideia 3 — Empréstimo: reutilizar a prova de garantia numa faixa de preços</a></li>
+        <li><a href="#kzg">Ideia 4 — KZG: atualizar uma prova sem revelar o depósito</a></li>
+        <li><a href="#revogacao">Ideia 5 — Revogação privada de credenciais</a></li>
+        <li><a href="#carteira">Ideia 6 — Recuperar pagamentos depois de ficar offline</a></li>
+      </ul>
+    </nav>
+    <p><strong>Por onde começar:</strong> <a href="#loan-interval">ideia 3</a> como rota mais rápida (simulador de reutilização de certificados); <a href="#revogacao">ideia 5</a> como pergunta de segurança mais clara. A novidade de todas ainda precisa ser demonstrada. <a href="peer-review-ufmg/">Ler a avaliação completa e os recortes revisados</a>.</p>
+    
+  </header>
+  <main>
+    <section id="ranking" aria-labelledby="titulo-ranking">
+      <h2 id="titulo-ranking">Ranking para um pré-projeto no PPGCC/UFMG</h2>
+      <p>Seis pareceres de agentes de IA e 30 revisões cruzadas, usando os pesos do <a href="peer-review-ufmg/edital-ppgcc-2026.pdf#page=15">edital PPGCC 2026</a>: aderência 35%, originalidade 35% e viabilidade 30%.</p>
+      <table>
+        <caption>Média dos seis pareceres sobre as ideias originais</caption>
+        <thead><tr><th scope="col">Posição</th><th scope="col">Ideia</th><th scope="col">Nota / 10</th></tr></thead>
+        <tbody>
+          <tr><td>1º</td><th scope="row"><a href="#loan-interval">Ideia 3 — Certificados de garantia por faixa</a></th><td>7,8</td></tr>
+          <tr><td>2º</td><th scope="row"><a href="#revogacao">Ideia 5 — Revogação privada</a></th><td>7,4</td></tr>
+          <tr><td>3º</td><th scope="row"><a href="#carteira">Ideia 6 — Recuperação após ficar offline</a></th><td>7,3</td></tr>
+          <tr><td>4º</td><th scope="row"><a href="#kzg">Ideia 4 — Atualização privada KZG</a></th><td>6,8</td></tr>
+        </tbody>
+      </table>
+      <p>As notas avaliam o mérito das propostas: <strong>7,8/10 não significa 78% de chance de aprovação</strong>. A diferença entre as ideias 5 e 6 é pequena. A ideia 4 tem a melhor motivação de novidade, mas a menor viabilidade no painel. O painel não representa a banca da UFMG.</p>
+      <p><a href="peer-review-ufmg/">Justificativas, limitações e reformulação de cada ideia</a> · <a href="peer-review-ufmg/panel.html">Painel completo</a></p>
+    </section>
+    <section id="loan-interval" aria-labelledby="titulo-loan-interval">
+      <h2 id="titulo-loan-interval">Ideia 3 — Empréstimo: reutilizar a prova de garantia numa faixa de preços</h2>
+      <p>Você prova que a garantia cobre a dívida sem revelar as quantidades. Se o preço público entrar como um valor exato no circuito, uma nova cotação pode exigir uma nova prova.</p>
+      <p><strong>A mudança:</strong> prova para um preço exato → certificado válido para uma faixa pública de preços e um prazo curto, usando um SNARK convencional.</p>
+      <p><strong>Exemplo:</strong> provar que a garantia cobre a dívida mesmo se o preço cair até R$ 90. O contrato pode reutilizar o certificado enquanto a cotação permanecer na faixa combinada, o prazo não vencer e a posição continuar no mesmo estado.</p>
+      <h3>Paper para ler</h3>
+      <p><a href="https://eprint.iacr.org/2025/1802">Zyga: Optimized Zero-Knowledge Proofs with Dynamic Public Inputs</a> — preprint de 2025, revisão de 22/12/2025. Ler <a href="defi/papers/zyga-2025.pdf#page=24">a seção 8.2 sobre empréstimos, na página 24</a>. <a href="defi/papers/zyga-2025.pdf">PDF completo de Zyga (31 páginas)</a>.</p>
+      <p><strong>O que já existe:</strong> Zyga já propõe reutilização de provas com entradas públicas dinâmicas e cita empréstimos. O recorte aqui é investigar uma alternativa mais restrita com circuitos convencionais: quanto de reutilização se obtém ao certificar uma faixa conservadora, e quanta informação essa faixa revela?</p>
+      <p><strong>Primeiro experimento:</strong> uma garantia, uma dívida e um limite de juros conhecido até o vencimento do certificado. Comparar provas para o preço exato e certificados de diferentes amplitudes sob as mesmas solicitações de verificação, permitindo reutilizar resultados ainda válidos. Incluir um controle com apenas preço mínimo e prazo. Medir provas evitadas, custo total, informação revelada e rejeições de posições que ainda seriam saudáveis no preço exato.</p>
+      <details>
+        <summary>O circuito, a privacidade e o limite do recorte</summary>
+        <p>Com valores inteiros escalados, provar que <code>garantia × preço_mínimo ≥ razão_de_garantia × dívida_máxima_no_prazo</code>. Definir limites numéricos, arredondamento conservador e ausência de overflow. Provar também o vínculo com garantia efetivamente bloqueada e com o estado autorizado da posição.</p>
+        <p>O contrato verifica cotação recente, faixa, prazo, política de juros e versão da posição. Alterar garantia ou dívida invalida o certificado. Isso é reutilizar uma checagem de saúde; o certificado não autoriza repetir um desembolso de empréstimo.</p>
+        <p>Uma faixa escolhida individualmente pode revelar limites sobre a razão garantia/dívida. Comparar faixas comuns a todos com faixas personalizadas, incluindo o que sucessivas renovações revelam. Neste primeiro modelo, a posição é pública como um pseudônimo e os valores são privados; reutilizar o certificado permite correlacionar suas verificações.</p>
+        <p><strong>Dificuldade: baixa a média para o protótipo; média para a análise.</strong> O desafio é caracterizar segurança, informação revelada e custo, além de procurar técnicas equivalentes na literatura. A ideia de certificado por faixa é uma hipótese desta busca, não um open problem declarado por Zyga.</p>
+        <p>O escopo é a verificação privada da suficiência de garantia. Liquidar automaticamente uma posição privada exige mecanismos adicionais. Zyga entra como trabalho relacionado; seus números não serão usados como comparação direta sem reproduzir o artefato.</p>
+      </details>
+      <details>
+        <summary>Mais leituras sobre empréstimos</summary>
+        <p><a href="https://scholarworks.boisestate.edu/cs_facpubs/265/">ZeroLender: Trustless Peer-to-Peer Bitcoin Lending Platform</a> — CODASPY 2020. Usa ZK para desvincular credores e tomadores. Nesta busca foi consultado o resumo institucional; não há PDF local nem análise da construção.</p>
+        <p><a href="https://scholarworks.sjsu.edu/faculty_rsca/5019/">Autonomous Lending Organization on Ethereum with Credit Scoring (ALOE)</a> — SVCC 2023. É uma base para estudar crédito, identidade e atualização de score; seu modelo associa contas a identidades por um notário e auditores. <a href="defi/papers/aloe-2023.pdf">PDF dos autores (8 páginas)</a> · <a href="https://github.com/taustin/cryptoCreditBureau/">Código do ALOE</a>.</p>
+        <p>Provar apenas que um score supera um limite é um começo de implementação. Para virar proposta de pesquisa, ainda faltaria uma pergunta específica sobre atualização, omissão de dívidas ou privacidade.</p>
+      </details>
+      <p><a href="defi/README.md">Notas técnicas de swaps e empréstimos</a> · <a href="defi/sources.json">Fontes, versões e limites da busca</a></p>
+      <details>
+        <summary>Para decidir: perguntas, marcos, riscos e encaixe</summary>
+        <p><strong>Pergunta reescrita:</strong> quanto custo se evita para cada nível de recusa conservadora e informação revelada? A novidade não está na desigualdade <code>garantia × preço_mínimo ≥ razão × dívida_máxima</code>, mas na caracterização conjunta de custo, conservadorismo e vazamento com um SNARK convencional.</p>
+        <p><strong>Primeiro marco (meses 1–3):</strong> simulador determinístico — séries de preços, estado da posição, política de reutilização e solicitações de verificação — com aritmética inteira conservadora, antes de qualquer circuito.</p>
+        <p><strong>Controles:</strong> prova por cotação sob a mesma demanda; faixa comum a todos; faixa personalizada; certificado com apenas limite inferior e prazo (o teto <code>p_max</code> não fortalece a desigualdade).</p>
+        <p><strong>Continuar ou abandonar:</strong> continuar se restar pergunta empírica ou formal após confrontar anterioridade com Zyga (seção 8.2); abandonar se a contribuição ficar limitada a demonstrar a desigualdade.</p>
+        <p><strong>Risco principal:</strong> o painel alertou que a ideia pode terminar "só como uma desigualdade". O que a sustenta é a análise do vazamento acumulado em renovações sucessivas.</p>
+        <p><strong>Encaixe com a orientação:</strong> forte na linha de quantificação matemática de privacidade do InSCryP (medir vazamento que evolui com o tempo).</p>
+        <p><strong>Combina com você se:</strong> prefere medir, simular e caracterizar trade-offs a desenhar primitivas, e quer um primeiro resultado visível em semanas.</p>
+      </details>
+    </section>
+
+    <section id="kzg" aria-labelledby="titulo-kzg">
+      <h2 id="titulo-kzg">Ideia 4 — KZG: atualizar uma prova sem revelar o depósito</h2>
+      <p>Você deposita num pool, fica offline e volta depois de milhares de novos depósitos. Quer atualizar o dado auxiliar da sua prova de saque, chamado <em>witness</em>, sem revelar ao servidor qual depósito é seu.</p>
+      <p><strong>O que adaptar:</strong> técnicas de atualização privada de provas em acumuladores RSA/bilineares para um vector commitment KZG, com aplicação a um pool baseado em Caulk+/Semacaulk.</p>
+      <p><strong>Pergunta:</strong> essa adaptação pode reduzir o trabalho da carteira sem revelar a posição consultada, mantendo a comunicação e o custo do servidor aceitáveis?</p>
+      <p><strong>O que já existe:</strong> Tornado Cash usa Merkle; Semacaulk já faz a troca Merkle → KZG com pertencimento privado. O recorte proposto é a atualização privada do witness no compromisso vetorial. Uma abertura comum de KZG não esconde a posição do depósito.</p>
+      <h3>Papers para ler</h3>
+      <ul>
+        <li>
+          <a href="https://eprint.iacr.org/2026/832">Private Delegation of (Non-)Membership Proof Updates in Cryptographic Accumulators</a> — ePrint 2026/832.
+          <p>Apresenta atualização privada de provas para RSA e acumuladores bilineares. Na página 30, os autores apontam vector commitments e polynomial commitments como direções para extensão.</p>
+          <p><a href="accumulators/papers/private-delegation-2026.pdf#page=30">Abrir os trabalhos futuros (página 30)</a> · <a href="accumulators/papers/private-delegation-2026.pdf">Ler o paper completo (46 páginas)</a> · <a href="https://github.com/GlaszBoti/private-accumulator-proof-delegation">Código de delegação privada</a></p>
+        </li>
+        <li>
+          <a href="https://eprint.iacr.org/2022/957">Caulk+: Table-independent lookup arguments</a> — ePrint 2022/957.
+          <p>Prova pertencimento a uma tabela comprometida mantendo as posições ocultas. É uma das peças usadas no Semacaulk.</p>
+          <p><a href="accumulators/papers/caulk-plus-2022.pdf">Ler Caulk+ (PDF, 11 páginas)</a> · <a href="https://github.com/geometryxyz/semacaulk">Código do Semacaulk</a></p>
+        </li>
+        <li>
+          <a href="https://eprint.iacr.org/2023/1830">Vector Commitments with Efficient Updates</a> — cópia ePrint do trabalho da AFT 2023.
+          <p>Explica a relação entre dados de atualização e trabalho do cliente. A seção 3.1 mostra como atualizar compromissos e aberturas KZG.</p>
+          <p><a href="accumulators/papers/vector-updates-2023.pdf#page=11">Abrir a seção sobre atualização KZG (página 11)</a> · <a href="accumulators/papers/vector-updates-2023.pdf">Ler o paper completo (46 páginas)</a></p>
+        </li>
+      </ul>
+      <p><a href="https://kohweijie.com/articles/23/semacaulk.html">A apresentação de Semacaulk pelos autores</a> é uma leitura inicial mais curta para entender a troca Merkle → KZG.</p>
+      <details>
+        <summary>Experimento, dificuldade e cuidados da proposta KZG</summary>
+        <p>Começar com um vetor de capacidade fixa, uma nota por cliente e apenas inserções. Comparar a atualização local com a delegação candidata e com recuperação privada de witnesses pré-computados por PIR.</p>
+        <p>Medir tempo e memória da carteira, bytes transferidos, processamento e armazenamento do servidor. O resultado precisa ser verificado contra o compromisso público aceito e funcionar numa prova real de pertencimento.</p>
+        <p>O paper já cobre acumuladores bilineares baseados em polinômios. Um compromisso vetorial KZG representa os dados de outra forma; a adaptação para os witnesses usados pelo lookup precisa ser construída e justificada.</p>
+        <p><strong>Escopo pequeno, com dificuldade criptográfica:</strong> a primeira etapa é reproduzir a atualização local. Delegação com posição oculta exige justificar correção, privacidade e rejeição de respostas falsas. Não há garantia de que a composição seja inédita ou mais eficiente.</p>
+      </details>
+      <p><a href="accumulators/">Ler a proposta KZG detalhada e os outros recortes com acumuladores</a></p>
+      <details>
+        <summary>Para decidir: perguntas, marcos, riscos e encaixe</summary>
+        <p><strong>Pergunta reescrita:</strong> é possível reduzir o trabalho da carteira na atualização do witness KZG preservando o índice consultado, com resultado verificável contra o compromisso público atual?</p>
+        <p><strong>Primeiro marco (meses 1–3):</strong> reproduzir a atualização local (Tas e Boneh, seção 3.1) e demonstrar que o resultado alimenta exatamente os auxiliares que a prova Caulk+ consome; identificar quais dados dependem da posição secreta.</p>
+        <p><strong>Controles:</strong> atualização local; recuperação por PIR de witnesses pré-computados (contando a manutenção do servidor); a delegação candidata.</p>
+        <p><strong>Continuar ou abandonar:</strong> continuar se, até o mês 4, uma adaptação de técnicas existentes preservar o modelo; interromper antes da implementação extensa se ocultação e verificabilidade exigirem uma primitiva nova.</p>
+        <p><strong>Risco principal:</strong> o protocolo de delegação em KZG é a própria pesquisa — a variância de cronograma é a maior das quatro; há corrida possível, pois a direção VC/PCS está explícita no ePrint 2026/832 (página 30).</p>
+        <p><strong>Encaixe com a orientação:</strong> forte em construção de protocolos e provas de segurança; é a mais teórica das quatro.</p>
+        <p><strong>Combina com você se:</strong> gosta de álgebra e de construir/provar protocolos, e aceita um semestre de fundação e reprodução antes da contribuição.</p>
+      </details>
+    </section>
+
+    <section id="revogacao" aria-labelledby="titulo-revogacao">
+      <h2 id="titulo-revogacao">Ideia 5 — Revogação privada de credenciais</h2>
+      <p>Provar que uma credencial continua válida sem revelar qual é ela, mesmo quando um servidor tenta fornecer uma resposta falsa.</p>
+      <p><strong>O que combinar:</strong> consulta privada de revogação + recuperação autenticada + prova ZK vinculada à versão aceita da base de dados.</p>
+      <p><strong>Pergunta:</strong> quanto custa impedir a aceitação de um registro falso ou antigo, preservando a privacidade da consulta?</p>
+      <h3>Papers para ler</h3>
+      <ul>
+        <li>
+          <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/edalatnejad">Do You Need a Receipt? Anonymous Credential Revocation at Continental Scale via Private Record Certification</a> — USENIX Security 2026.
+          <p>Combina consulta privada e computação entre servidores para certificar um registro. O modelo não impede a falsificação de certificados por autoridades de revogação ativamente maliciosas.</p>
+          <p><a href="papers/prc-revocation-2026.pdf">Ler Do You Need a Receipt? (PDF, 21 páginas)</a> · <a href="https://zenodo.org/records/20433788">Artefato do PRC</a></p>
+          <p>Começar pelo resumo e pela seção 4.1, na <a href="papers/prc-revocation-2026.pdf#page=8">página 8 do PDF de PRC</a>. A seção 5.3 explica por que assinaturas distribuídas, sozinhas, não resolvem a limitação.</p>
+        </li>
+        <li>
+          <a href="https://eprint.iacr.org/2025/2177">TAPIR: A Two-Server Authenticated PIR Scheme with Preprocessing</a> — ACNS 2026; preprint de 2025.
+          <p>Permite consultar dados privadamente e verificar a autenticidade da resposta, sob seu modelo de dois servidores. É uma possível peça para a combinação.</p>
+          <p><a href="papers/tapir-2025.pdf">Ler TAPIR (PDF, 20 páginas)</a> · <a href="https://github.com/laurahetz/TAPIR">Código do TAPIR</a></p>
+        </li>
+      </ul>
+      <details>
+        <summary>Experimento, dificuldade e cuidados da ideia 5</summary>
+        <p>Começar com dois servidores e credenciais sintéticas com dois estados: ativa ou revogada. Comparar o protocolo original, a composição proposta e uma solução simples com árvore de Merkle e ZK.</p>
+        <p>Medir tempo, comunicação e custo das atualizações. Testar registros alterados e respostas de versões antigas da base.</p>
+        <p>Não basta o cliente detectar uma resposta falsa: um cliente malicioso pode ignorar essa verificação. Quem recebe a prova também precisa verificar seu vínculo com a base aceita.</p>
+        <p><strong>Dificuldade estimada:</strong> média a alta. Exige definir a segurança da composição e comparar com outras soluções de revogação, incluindo ALLOSAUR.</p>
+      </details>
+      <details>
+        <summary>Para decidir: perguntas, marcos, riscos e encaixe</summary>
+        <p><strong>Pergunta reescrita:</strong> qual sobrecusto permite ao verificador rejeitar um registro falso ou antigo quando o cliente e um dos servidores são maliciosos e coligados?</p>
+        <p><strong>Primeiro marco (meses 1–3):</strong> escrever a relação verificada por terceiros — credencial, índice oculto, registro e época — e demonstrar a rejeição de um registro falso num exemplo mínimo.</p>
+        <p><strong>Controles:</strong> PRC no modelo original; Merkle + ZK com as mesmas garantias; ALLOSAUR com diferenças de confiança declaradas.</p>
+        <p><strong>Continuar ou abandonar:</strong> continuar se, até o mês 4, houver evidência autenticada incorporável à apresentação ZK; interromper se a solução exigir um novo APIR ou apenas deslocar a confiança.</p>
+        <p><strong>Risco principal:</strong> a demonstração de segurança da composição pode ser longa — mitigar fixando escopo de dois servidores e estados binários.</p>
+        <p><strong>Encaixe com a orientação:</strong> máximo — definições de segurança, composição e modelos de adversário são a linha central do InSCryP.</p>
+        <p><strong>Combina com você se:</strong> se empolga em definir um modelo de adversário e provar que uma composição fecha uma lacuna de segurança.</p>
+      </details>
+    </section>
+
+    <section id="carteira" aria-labelledby="titulo-carteira">
+      <h2 id="titulo-carteira">Ideia 6 — Recuperar pagamentos depois de ficar offline</h2>
+      <p>Uma carteira privada precisa descobrir os pagamentos recebidos sem revelar ao servidor quais pertencem a ela. Isso fica mais difícil quando ela passa muito tempo offline.</p>
+      <p><strong>O que combinar:</strong> uma caixa de entrada pequena para mensagens recentes + busca privada no histórico para recuperar as antigas.</p>
+      <p><strong>Pergunta:</strong> essa combinação pode ser barata no uso diário e ainda recuperar todas as notificações após longos períodos offline?</p>
+      <h3>Papers para ler</h3>
+      <ul>
+        <li>
+          <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/shuhan">Oblivious Signaling</a> — USENIX Security 2026.
+          <p>Organiza a entrega para facilitar a consulta de uma caixa de entrada de tamanho fixo. Quando ela enche, as mensagens mais antigas são removidas.</p>
+          <p><a href="papers/oblivious-signaling-2026.pdf">Ler Oblivious Signaling (PDF, 21 páginas)</a> · <a href="https://doi.org/10.5281/zenodo.20437084">Artefato de Oblivious Signaling</a></p>
+          <p>A limitação de capacidade está na seção 7, na <a href="papers/oblivious-signaling-2026.pdf#page=15">página 15 do PDF de Oblivious Signaling</a>.</p>
+        </li>
+        <li>
+          <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/liang">InstantOMR: Oblivious Message Retrieval with Low Latency and Optimal Parallelizability</a> — USENIX Security 2026.
+          <p>Recupera mensagens privadamente usando cálculos sobre dados criptografados. Pode servir como base para a camada de histórico.</p>
+          <p><a href="papers/instant-omr-2026.pdf">Ler InstantOMR (PDF, 21 páginas)</a> · <a href="https://github.com/xiangxiecrypto/tfhe-omr">Código do InstantOMR</a></p>
+        </li>
+        <li>
+          <a href="https://eprint.iacr.org/2026/910">UnifOMR: Oblivious Message Retrieval with Near-optimal Concrete Efficiency</a> — ePrint 2026/910.
+          <p>Outra construção recente de recuperação privada, com escolhas diferentes de comunicação e interação. Deve entrar na comparação de desempenho.</p>
+          <p><a href="papers/unif-omr-2026.pdf">Ler UnifOMR (PDF, 56 páginas)</a></p>
+        </li>
+      </ul>
+      <details>
+        <summary>Experimento, dificuldade e cuidados da ideia 6</summary>
+        <p>Simular pagamentos e períodos offline. Comparar somente a caixa recente, somente a busca privada no histórico e a combinação. Medir tempo de recuperação, bytes e processamento por usuário.</p>
+        <p>Contar o custo de manter as duas camadas. A própria decisão de buscar no histórico pode revelar informação; consultas em horários fixos e mensagens de preenchimento são possibilidades a avaliar.</p>
+        <p>Recuperar uma notificação não prova que o pagamento está confirmado ou que o saldo pode ser gasto.</p>
+        <p><strong>Dificuldade estimada:</strong> média a alta, por envolver FHE/PIR. A composição é uma hipótese de pesquisa; sua vantagem ainda precisa ser medida.</p>
+      </details>
+      <details>
+        <summary>Para decidir: perguntas, marcos, riscos e encaixe</summary>
+        <p><strong>Pergunta reescrita:</strong> em quais cargas a combinação de caixa recente + histórico reduz o custo total, mantendo a recuperação de todas as notificações dentro de uma retenção declarada?</p>
+        <p><strong>Primeiro marco (meses 1–3):</strong> simulação sem FHE — FIFO, retenção H, períodos offline, deduplicação e acionamento do histórico — para saber se a composição tem regime útil antes de integrar OMR.</p>
+        <p><strong>Controles:</strong> somente caixa recente (mede perda); OMR isolado (InstantOMR e UnifOMR) incluindo processamento contínuo; a composição.</p>
+        <p><strong>Continuar ou abandonar:</strong> continuar se interfaces e limites permitirem uma comparação informativa; abandonar a promessa de completude se houver apagamento fora do modelo ou arquivo insuficiente.</p>
+        <p><strong>Risco principal:</strong> FHE é o maior custo de aprendizado; a composição pode responder "não compensa"; o acionamento do histórico pode vazar mais do que o preenchimento corrige.</p>
+        <p><strong>Encaixe com a orientação:</strong> razoável (recuperação privada tangencia OT/PIR), mas a integração não é neutralizada pela orientação.</p>
+        <p><strong>Combina com você se:</strong> gosta de sistemas e medição, e encara responder "não compensa" como um resultado aceitável de pesquisa.</p>
+      </details>
+    </section>
+
+    <section id="decisao" aria-labelledby="titulo-decisao">
+      <h2 id="titulo-decisao">Como decidir entre as quatro</h2>
+      <p>O painel pontuou as formulações originais pela rubrica do edital PPGCC (aderência 35%, originalidade 35%, viabilidade 30%). Para escolher um tema de um ano, os pesos mudam: novidade defensável e encaixe com a orientação sobem, e viabilidade passa a incluir o custo de aprender.</p>
+      <table>
+        <caption>As quatro candidatas em um só quadro</caption>
+        <thead><tr><th scope="col">Critério</th><th scope="col">3 — Faixa</th><th scope="col">4 — KZG</th><th scope="col">5 — Revogação</th><th scope="col">6 — Offline</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Novidade defensável</th><td>Média (Zyga já cobre o geral)</td><td>Alta (gap explícito, p. 30)</td><td>Alta (lacuna em paper de topo)</td><td>Média (composição é hipótese própria)</td></tr>
+          <tr><th scope="row">Primeiro resultado verificável</th><td>Em semanas (simulador)</td><td>Parcial (reproduzir atualização local)</td><td>Em meses (relação + contraexemplo)</td><td>Simulação simples; FHE vem depois</td></tr>
+          <tr><th scope="row">Dificuldade de implementação</th><td>Baixa</td><td>Média</td><td>Média</td><td>Alta (FHE)</td></tr>
+          <tr><th scope="row">Risco de estourar o cronograma</th><td>Baixo</td><td>Alto</td><td>Médio</td><td>Alto</td></tr>
+          <tr><th scope="row">Baseline/artefato próximo</th><td>Zyga (sem artefato local verificado)</td><td>Semacaulk, Tas–Boneh, repo de delegação</td><td>Artefato PRC e repo de TAPIR</td><td>Repos de OSig, InstantOMR e UnifOMR</td></tr>
+          <tr><th scope="row">Encaixe com a orientação</th><td>Quantificação de vazamento</td><td>Construção de protocolos</td><td>Definições e adversários</td><td>Recuperação privada aplicada</td></tr>
+          <tr><th scope="row">Tipo de trabalho</th><td>Medir e caracterizar</td><td>Construir e provar</td><td>Definir e provar composição</td><td>Integrar e medir sistemas</td></tr>
+          <tr><th scope="row">Risco de a banca achar raso</th><td>Alto se ficar só na desigualdade</td><td>Baixo</td><td>Baixo</td><td>Médio</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Três perguntas para decidir com a sua empolgação:</strong></p>
+      <ol>
+        <li>Quer um primeiro resultado verificável em semanas (→ 3) ou uma pergunta de segurança que sustente um ano inteiro (→ 5)?</li>
+        <li>Topa construir e provar uma construção nova, aceitando variância de cronograma (→ 4), ou prefere compor peças publicadas (→ 3, 5, 6)?</li>
+        <li>Implementar e medir FHE seria prazer ou o maior custo do seu semestre? Se for o segundo caso, evite a 6.</li>
+      </ol>
+      <p><strong>Resumo da minha leitura:</strong> a 5 é a pergunta de segurança mais clara e o melhor encaixe com o perfil de orientação; a 3 é a rota mais rápida e a mais próxima da linha de quantificação de privacidade; a 4 é a mais teórica, com a melhor motivação de novidade e a maior variância; a 6 é a de maior risco técnico.</p>
+    </section>
+
+  </main>
+  <footer>
+    <p>Os PDFs e descrições da seleção atual estão nesta página. A busca foi dirigida, com leitura de trechos relevantes; os protocolos ainda não foram implementados ou medidos nesta pesquisa.</p>
+    <p>As ideias 1 e 2 (Zswap) e o histórico da primeira seleção foram removidos; o levantamento inicial segue em <a href="README.md">README</a> e <a href="sources.json">sources.json</a>.</p>
+    <p><a href="README.md">Notas da pesquisa (.md)</a> · <a href="sources.json">Fontes da primeira busca</a> · <a href="accumulators/sources.json">Fontes sobre acumuladores</a> · <a href="defi/sources.json">Fontes sobre swaps e empréstimos</a> · <a href="#inicio">Voltar ao início</a></p>
+  </footer>
+</body>
+</html>

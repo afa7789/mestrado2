@@ -1,0 +1,51 @@
+{
+  "reviewer": "P3",
+  "versions": [
+    {
+      "version": "V1",
+      "clarity": 8,
+      "quality": 9,
+      "consistency": 8,
+      "structure": 8,
+      "originality": 8,
+      "critique": "A ideia 3 introduz o controle mais cuidadoso para a economia de provas: demanda efetiva e cache, evitando atribuir ganho à eliminação de verificações que nem seriam solicitadas.\nA ideia 2 inclui lotes rejeitados e recuperação após falha, mas usa o “limiar já publicado” como critério de abandono sem identificar qual resultado anterior tornaria a pergunta redundante.\nNa ideia 4, contabilizar pré-processamento e armazenamento é necessário, porém falta declarar por quantos clientes e épocas esses custos serão amortizados; isso pode inverter a comparação entre delegação e PIR.\nOs campos repetidos facilitam a comparação, mas reuni-los em um único parágrafo por ideia dificulta localizar os marcos de continuidade e distinguir hipótese, controle e contribuição."
+    },
+    {
+      "version": "V2",
+      "clarity": 9,
+      "quality": 8,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 7,
+      "critique": "O protocolo comum de versões, hardware, sementes, repetições e dispersão torna os resultados comparáveis; a amortização por clientes na ideia 4 também trata um custo que avaliações apenas locais esconderiam.\nNa ideia 3, o controle “prova por cotação” pode superestimar a economia se a saúde da posição só for verificada sob demanda; falta fixar solicitações idênticas e permitir o reaproveitamento já disponível no controle.\nA ideia 6 coloca a caixa isolada ao lado das soluções com histórico, mas não explicita que ela deixa de oferecer a mesma recuperação após transbordamento; custo inferior com perda deve ser identificado separadamente.\nAs contribuições são delimitadas, porém “mapa reproduzível” e “caracterização experimental” ainda precisam apontar que hipótese específica será explicada; a padronização das medições, sozinha, não estabelece essa distinção."
+    },
+    {
+      "version": "V3",
+      "clarity": 9,
+      "quality": 9,
+      "consistency": 9,
+      "structure": 9,
+      "originality": 8,
+      "critique": "A ideia 6 distingue expressamente a caixa isolada como controle de perda e usa varredura local como oráculo, evitando equiparar sistemas baratos que entregam funções diferentes.\nOs controles com aritmética de precisão arbitrária e recomputação integral ajudam a detectar erros; o texto também exige argumentos de composição, sem apresentar os testes como demonstrações de segurança.\nA ideia 4 inclui a manutenção de witnesses pré-computados, mas não fixa a amortização por clientes e épocas, deixando aberta uma escolha capaz de dominar o resultado de desempenho.\nExigir apenas algoritmo e argumentos “plausíveis” para essa ideia no mês 6 deixa o marco menos verificável que os argumentos “fechados” exigidos na ideia 1; convém definir qual evidência mínima autoriza a implementação extensa."
+    },
+    {
+      "version": "V4",
+      "clarity": 9,
+      "quality": 9,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 8,
+      "critique": "Os controles são particularmente concretos: Merkle com cache e atualização incremental, batching aleatorizado e download integral reduzem o risco de comparar a proposta apenas com alternativas artificialmente caras.\nA ideia 3 vincula garantia bloqueada, domínio, estado, prazo e cotação recente; a métrica de redução das razões compatíveis torna a análise de informação mais examinável que uma referência genérica a vazamento.\nNa ideia 2, os marcos exigem compatibilidade e comparação completa, mas não exigem distinguir a fronteira obtida dos benchmarks já existentes; esse ponto enfraquece a indicação categórica dessa alternativa como escolha principal.\nNa ideia 6, “sem cobertura completa, interromper” é amplo demais: uma falha dentro das hipóteses exige correção, enquanto uma impossibilidade bem caracterizada pode justificar redução de escopo ou resultado negativo de pesquisa."
+    },
+    {
+      "version": "V5",
+      "clarity": 9,
+      "quality": 8,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 8,
+      "critique": "A ideia 3 propõe medir conjuntos de razões possíveis sem inventar uma distribuição probabilística; a ideia 6 contabiliza calendário fixo e preenchimento e delimita a completude pela retenção H.\nO escopo mínimo da ideia 1 inclui até 2¹⁸ notas sem a condição de memória presente no original e nas demais versões; isso transforma um teste de escala opcional em compromisso inicial sem orçamento de recursos.\nA ideia 3 vincula estado e vencimento, mas omite a exigência original de cotação recente: a validade temporal do certificado não garante, por si, a atualidade do preço usado pelo verificador.\nO controle “prova por cotação” também precisa acompanhar as mesmas solicitações de verificação da alternativa; caso contrário, parte das provas evitadas pode vir de uma rotina desnecessária imposta apenas ao controle."
+    }
+  ]
+}
+

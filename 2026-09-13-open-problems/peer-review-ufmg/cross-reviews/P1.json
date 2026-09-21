@@ -1,0 +1,50 @@
+{
+  "reviewer": "P1",
+  "versions": [
+    {
+      "version": "V1",
+      "clarity": 8,
+      "quality": 9,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 8,
+      "critique": "Na ideia 6, tratar a caixa isolada como controle de perda evita comparar serviços com garantias diferentes; na ideia 2, incluir preparação e fila melhora a contabilidade.\nNa ideia 1, os testes de troca de nota e nullifier não demonstram extração sob simulação; a expressão “segurança exigida pelo Zswap” ainda precisa explicitar essa obrigação da composição.\nNa ideia 3, falta fixar os mesmos eventos de checagem para o controle e os certificados: contar uma prova por preço pode superestimar a economia quando nem toda cotação exige uma checagem.\nA fronteira de custo/latência da ideia 2 pode sustentar contribuição incremental, mas o texto ainda não identifica qual característica do fluxo Zswap torna a pergunta distinta de uma avaliação genérica de lotes."
+    },
+    {
+      "version": "V2",
+      "clarity": 9,
+      "quality": 8,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 8,
+      "critique": "Separar ocupação de profundidade na ideia 1 e comparar provas exatas nos mesmos eventos na ideia 3 são controles que eliminam fontes concretas de ganho aparente.\nNa ideia 4, a “identificação formal/experimental dos obstáculos” precisa produzir uma condição ou limite demonstrável; relatar dificuldade de integração, isoladamente, não caracteriza contribuição.\nNa ideia 5, “um honesto e sem conluio” deixa ambíguo se a restrição também impede colaboração entre o cliente malicioso e o outro servidor, o que altera a garantia pretendida.\nNa ideia 6, “divulgação de metadados delimitada” ainda não define os observáveis da ativação do histórico nem como comparar políticas com vazamentos diferentes."
+    },
+    {
+      "version": "V3",
+      "clarity": 9,
+      "quality": 8,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 8,
+      "critique": "O protocolo comum de reprodução e os testes de fronteira entre épocas, duplicatas e retomada interrompida da ideia 6 tornam a avaliação mais verificável sem exigir integração FHE prematura.\nNa ideia 3, “prova por cotação” pode criar um controle artificialmente caro: a contagem de provas evitadas precisa acompanhar a mesma demanda de checagens de saúde.\nNa ideia 5, pedir hipóteses separadas é adequado, mas o escopo ainda não escolhe o adversário e o conluio permitidos para comparar PRC, TAPIR com ZK e Merkle com ZK; testar um cliente conivente não resolve essa definição."
+    },
+    {
+      "version": "V4",
+      "clarity": 9,
+      "quality": 9,
+      "consistency": 9,
+      "structure": 9,
+      "originality": 9,
+      "critique": "Na ideia 3, usar prova exata sob demanda, admitir cache e esclarecer o papel de p_max evita atribuir ao certificado economias produzidas pelo controle; a ideia 2 também incorpora lotes rejeitados.\nNa ideia 2, “minimiza custo” requer uma unidade ou pesos para CPU, comunicação e espera; sem essa definição, o resultado defensável é uma fronteira de alternativas, não uma política ótima única.\nA ideia 5 distingue corretamente a base aceita da decisão da autoridade, mas a evidência de TAPIR incorporável à apresentação ZK continua sendo hipótese de viabilidade: testes de falsificação e replay não demonstram a segurança dessa composição."
+    },
+    {
+      "version": "V5",
+      "clarity": 9,
+      "quality": 9,
+      "consistency": 8,
+      "structure": 9,
+      "originality": 9,
+      "critique": "Medir intervalos inferíveis sem pressupor distribuição, na ideia 3, e comparar consultas sob demanda com calendário e preenchimento, na ideia 6, dá conteúdo verificável à análise de privacidade.\nNa ideia 3, o controle “prova por cotação” ainda pode inflar as provas evitadas; falta manter a mesma demanda de checagens ao comparar custo e utilidade.\nNa ideia 5, “um semi-honesto sem conluio” precisa indicar se a restrição abrange o cliente malicioso e o outro servidor; essa ambiguidade impede saber exatamente qual ataque a composição promete impedir.\nNa ideia 1, incluir 2¹⁸ notas no escopo mínimo elimina a condição de memória presente no original e aumenta o compromisso experimental antes de reproduzir e validar o gasto completo."
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "reviewer": "P2",
+  "versions": [
+    {
+      "version": "V1",
+      "clarity": 8.5,
+      "quality": 8.8,
+      "consistency": 8.5,
+      "structure": 8.5,
+      "originality": 8.5,
+      "critique": "Na ideia 3, comparar as mesmas solicitações de checagem e incluir cache evita fabricar economia contando toda cotação como trabalho obrigatório.\nNa ideia 2, incluir lotes rejeitados é útil, mas falta delimitar a carga de entradas inválidas e a regra de recuperação: essas escolhas podem determinar a fronteira custo–latência.\nO critério de continuidade da ideia 5 precisa distinguir rejeição observada nos testes de uma propriedade justificada da relação criptográfica; os casos adversariais propostos não bastam para estabelecer segurança da composição."
+    },
+    {
+      "version": "V2",
+      "clarity": 8.7,
+      "quality": 8.5,
+      "consistency": 8.4,
+      "structure": 8.6,
+      "originality": 8.0,
+      "critique": "Separar ocupação de profundidade da árvore na ideia 1 e contabilizar construção e atualização das tabelas PIR na 4 evita dois controles artificialmente fracos.\nA ideia 3 melhora o comparador ao manter a demanda de checagens, mas a “métrica de divulgação” ainda não especifica como transformar apresentações observadas em limites inferíveis sobre garantia/dívida.\nNa ideia 5, “um honesto e sem conluio” deixa ambíguo quem pode cooperar com o cliente malicioso; delimitar essas coalizões é necessário para interpretar a comparação com PRC e Merkle+ZK."
+    },
+    {
+      "version": "V3",
+      "clarity": 9.0,
+      "quality": 9.0,
+      "consistency": 8.6,
+      "structure": 9.2,
+      "originality": 8.8,
+      "critique": "Batching aleatorizado, permutações, balanço e retomada após exceder a capacidade dão casos concretos de validação; mapear todos os auxiliares de Caulk+ na ideia 4 evita testar somente uma abertura KZG.\nNa ideia 3, “prova por cotação” pode superestimar a vantagem: a comparação precisa manter os mesmos eventos de checagem e justificar quando o controle poderia reutilizar uma verificação já realizada.\nNa ideia 2, aceitar resultados desfavoráveis é adequado, mas falta condicionar a continuidade a uma lacuna identificada na literatura: um modelo com medições negativas também pode apenas repetir um benchmark conhecido."
+    },
+    {
+      "version": "V4",
+      "clarity": 8.8,
+      "quality": 9.0,
+      "consistency": 8.5,
+      "structure": 8.9,
+      "originality": 8.6,
+      "critique": "A aritmética exata de referência da ideia 3 e os testes de base divergente e falha seletiva da 5 tornam a validação concreta; versões, repetições e dispersão explicitadas melhoram a reprodução.\nNa ideia 2, otimizar o prazo de fechamento sem definir regimes de chegada deixa o experimento subdeterminado: tráfego esparso e rajadas podem inverter a comparação entre políticas.\nNa ideia 5, “um semi-honesto sem conluio” precisa esclarecer se a restrição vale apenas entre servidores ou também para cooperação com o cliente; essa diferença altera o adversário que a apresentação deve enfrentar."
+    },
+    {
+      "version": "V5",
+      "clarity": 8.8,
+      "quality": 8.7,
+      "consistency": 8.3,
+      "structure": 8.6,
+      "originality": 8.5,
+      "critique": "Testar nota e autorização desencontradas, replay de época e retomada interrompida favorece a detecção de erros de vínculo; sementes e falhas registradas tornam os resultados auditáveis.\nNa ideia 3, o escopo não enuncia o vínculo com garantia efetivamente bloqueada nem a exigência de cotação recente; a máquina de estados e os testes de fronteira precisam partir desses invariantes de segurança.\nFora da ideia 4, “orçamento inicial” e “etapa inicial” não têm prazo definido: faltam marcos que permitam abandonar uma integração inviável ainda a tempo de executar outra alternativa nos 24 meses."
+    }
+  ]
+}

@@ -1,0 +1,1116 @@
+{
+  "interpretation": "Merit score of original ideas, not an admission probability or official NPP.",
+  "idea_weights": {
+    "relevance": 0.35,
+    "originality": 0.35,
+    "feasibility": 0.3
+  },
+  "rewrite_weights": {
+    "clarity": 0.15,
+    "quality": 0.35,
+    "consistency": 0.25,
+    "structure": 0.1,
+    "originality": 0.15
+  },
+  "ideas": [
+    {
+      "id": 3,
+      "score": {
+        "mean": 7.809166666666666,
+        "variance": 0.012278472222222288,
+        "sd": 0.1108082678423514,
+        "min": 7.664999999999999,
+        "max": 8.035,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 8.233333333333334,
+          "variance": 0.022222222222222303,
+          "sd": 0.14907119849998623,
+          "min": 8.0,
+          "max": 8.4,
+          "n": 6
+        },
+        "originality": {
+          "mean": 6.85,
+          "variance": 0.03916666666666664,
+          "sd": 0.19790570145063188,
+          "min": 6.5,
+          "max": 7.1,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 8.433333333333334,
+          "variance": 0.052222222222222184,
+          "sd": 0.22852182001336807,
+          "min": 8.1,
+          "max": 8.7,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 7.779999999999999,
+        "P2": 7.799999999999999,
+        "P3": 7.664999999999999,
+        "P4": 7.785,
+        "P5": 8.035,
+        "P6": 7.789999999999999
+      },
+      "rank": 1
+    },
+    {
+      "id": 2,
+      "score": {
+        "mean": 7.4775,
+        "variance": 0.13432291666666665,
+        "sd": 0.36650090950319164,
+        "min": 6.945,
+        "max": 8.045,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 8.066666666666666,
+          "variance": 0.21222222222222245,
+          "sd": 0.46067583203617535,
+          "min": 7.5,
+          "max": 8.8,
+          "n": 6
+        },
+        "originality": {
+          "mean": 6.383333333333334,
+          "variance": 0.1447222222222222,
+          "sd": 0.3804237403504442,
+          "min": 5.9,
+          "max": 6.9,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 8.066666666666666,
+          "variance": 0.11888888888888884,
+          "sd": 0.34480268109295326,
+          "min": 7.4,
+          "max": 8.5,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 8.045,
+        "P2": 7.3,
+        "P3": 7.845,
+        "P4": 6.945,
+        "P5": 7.299999999999999,
+        "P6": 7.43
+      },
+      "rank": 2
+    },
+    {
+      "id": 5,
+      "score": {
+        "mean": 7.355833333333333,
+        "variance": 0.05839513888888898,
+        "sd": 0.24165086155213472,
+        "min": 7.045,
+        "max": 7.74,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 8.566666666666666,
+          "variance": 0.0955555555555556,
+          "sd": 0.30912061651652356,
+          "min": 8.0,
+          "max": 9.0,
+          "n": 6
+        },
+        "originality": {
+          "mean": 7.45,
+          "variance": 0.08249999999999998,
+          "sd": 0.28722813232690136,
+          "min": 7.0,
+          "max": 7.8,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 5.833333333333334,
+          "variance": 0.13555555555555562,
+          "sd": 0.3681787005729088,
+          "min": 5.4,
+          "max": 6.4,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 7.449999999999999,
+        "P2": 7.074999999999999,
+        "P3": 7.334999999999999,
+        "P4": 7.49,
+        "P5": 7.74,
+        "P6": 7.045
+      },
+      "rank": 3
+    },
+    {
+      "id": 6,
+      "score": {
+        "mean": 7.259166666666666,
+        "variance": 0.0409118055555555,
+        "sd": 0.2022666694133156,
+        "min": 7.035,
+        "max": 7.6049999999999995,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 8.333333333333332,
+          "variance": 0.0655555555555555,
+          "sd": 0.2560381915956202,
+          "min": 8.0,
+          "max": 8.7,
+          "n": 6
+        },
+        "originality": {
+          "mean": 7.05,
+          "variance": 0.0125,
+          "sd": 0.11180339887498948,
+          "min": 6.9,
+          "max": 7.2,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 6.25,
+          "variance": 0.15583333333333335,
+          "sd": 0.39475730941090037,
+          "min": 5.6,
+          "max": 6.8,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 7.6049999999999995,
+        "P2": 7.199999999999999,
+        "P3": 7.449999999999999,
+        "P4": 7.09,
+        "P5": 7.035,
+        "P6": 7.174999999999999
+      },
+      "rank": 4
+    },
+    {
+      "id": 4,
+      "score": {
+        "mean": 6.772499999999999,
+        "variance": 0.040822916666666674,
+        "sd": 0.20204681800678445,
+        "min": 6.369999999999999,
+        "max": 7.004999999999999,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 8.0,
+          "variance": 0.03999999999999995,
+          "sd": 0.19999999999999987,
+          "min": 7.6,
+          "max": 8.2,
+          "n": 6
+        },
+        "originality": {
+          "mean": 7.45,
+          "variance": 0.05583333333333335,
+          "sd": 0.23629078131263045,
+          "min": 7.0,
+          "max": 7.7,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 4.55,
+          "variance": 0.04249999999999995,
+          "sd": 0.2061552812808829,
+          "min": 4.2,
+          "max": 4.8,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 7.004999999999999,
+        "P2": 6.7749999999999995,
+        "P3": 6.81,
+        "P4": 6.739999999999999,
+        "P5": 6.935,
+        "P6": 6.369999999999999
+      },
+      "rank": 5
+    },
+    {
+      "id": 1,
+      "score": {
+        "mean": 6.56,
+        "variance": 0.023533333333333323,
+        "sd": 0.15340577998671798,
+        "min": 6.305,
+        "max": 6.819999999999999,
+        "n": 6
+      },
+      "criteria": {
+        "relevance": {
+          "mean": 7.816666666666666,
+          "variance": 0.05138888888888887,
+          "sd": 0.2266911751455907,
+          "min": 7.5,
+          "max": 8.1,
+          "n": 6
+        },
+        "originality": {
+          "mean": 6.283333333333333,
+          "variance": 0.08138888888888884,
+          "sd": 0.2852873794770614,
+          "min": 5.7,
+          "max": 6.5,
+          "n": 6
+        },
+        "feasibility": {
+          "mean": 5.416666666666667,
+          "variance": 0.12472222222222232,
+          "sd": 0.35316033500695165,
+          "min": 4.8,
+          "max": 5.9,
+          "n": 6
+        }
+      },
+      "reviewers": {
+        "P1": 6.819999999999999,
+        "P2": 6.55,
+        "P3": 6.625,
+        "P4": 6.305,
+        "P5": 6.5649999999999995,
+        "P6": 6.494999999999999
+      },
+      "rank": 6
+    }
+  ],
+  "rewrite_reviews_complete": true,
+  "leave_one_reviewer_out": {
+    "P1": {
+      "ranking": [
+        3,
+        2,
+        5,
+        6,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.508,
+        "2": 7.364,
+        "3": 7.8149999999999995,
+        "4": 6.725999999999999,
+        "5": 7.337,
+        "6": 7.1899999999999995
+      }
+    },
+    "P2": {
+      "ranking": [
+        3,
+        2,
+        5,
+        6,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.561999999999999,
+        "2": 7.513,
+        "3": 7.811,
+        "4": 6.771999999999999,
+        "5": 7.412,
+        "6": 7.271
+      }
+    },
+    "P3": {
+      "ranking": [
+        3,
+        2,
+        5,
+        6,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.547,
+        "2": 7.404,
+        "3": 7.837999999999999,
+        "4": 6.765,
+        "5": 7.359999999999999,
+        "6": 7.220999999999999
+      }
+    },
+    "P4": {
+      "ranking": [
+        3,
+        2,
+        5,
+        6,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.611,
+        "2": 7.584,
+        "3": 7.813999999999999,
+        "4": 6.778999999999999,
+        "5": 7.329,
+        "6": 7.292999999999999
+      }
+    },
+    "P5": {
+      "ranking": [
+        3,
+        2,
+        6,
+        5,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.558999999999999,
+        "2": 7.513,
+        "3": 7.763999999999999,
+        "4": 6.739999999999999,
+        "5": 7.279,
+        "6": 7.303999999999999
+      }
+    },
+    "P6": {
+      "ranking": [
+        3,
+        2,
+        5,
+        6,
+        4,
+        1
+      ],
+      "means": {
+        "1": 6.5729999999999995,
+        "2": 7.487,
+        "3": 7.813,
+        "4": 6.853,
+        "5": 7.417999999999999,
+        "6": 7.276
+      }
+    }
+  },
+  "cross_review_matrix": [
+    {
+      "reviewer": "P1",
+      "author": "P2",
+      "version": "V1",
+      "weighted": 8.45,
+      "axes": {
+        "clarity": 8,
+        "quality": 9,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P1",
+      "author": "P3",
+      "version": "V2",
+      "weighted": 8.25,
+      "axes": {
+        "clarity": 9,
+        "quality": 8,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P1",
+      "author": "P6",
+      "version": "V3",
+      "weighted": 8.25,
+      "axes": {
+        "clarity": 9,
+        "quality": 8,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P1",
+      "author": "P4",
+      "version": "V4",
+      "weighted": 9.0,
+      "axes": {
+        "clarity": 9,
+        "quality": 9,
+        "consistency": 9,
+        "structure": 9,
+        "originality": 9
+      }
+    },
+    {
+      "reviewer": "P1",
+      "author": "P5",
+      "version": "V5",
+      "weighted": 8.75,
+      "axes": {
+        "clarity": 9,
+        "quality": 9,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 9
+      }
+    },
+    {
+      "reviewer": "P2",
+      "author": "P4",
+      "version": "V1",
+      "weighted": 8.605,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 8.8,
+        "consistency": 8.5,
+        "structure": 8.5,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P2",
+      "author": "P3",
+      "version": "V2",
+      "weighted": 8.44,
+      "axes": {
+        "clarity": 8.7,
+        "quality": 8.5,
+        "consistency": 8.4,
+        "structure": 8.6,
+        "originality": 8.0
+      }
+    },
+    {
+      "reviewer": "P2",
+      "author": "P1",
+      "version": "V3",
+      "weighted": 8.89,
+      "axes": {
+        "clarity": 9.0,
+        "quality": 9.0,
+        "consistency": 8.6,
+        "structure": 9.2,
+        "originality": 8.8
+      }
+    },
+    {
+      "reviewer": "P2",
+      "author": "P5",
+      "version": "V4",
+      "weighted": 8.775,
+      "axes": {
+        "clarity": 8.8,
+        "quality": 9.0,
+        "consistency": 8.5,
+        "structure": 8.9,
+        "originality": 8.6
+      }
+    },
+    {
+      "reviewer": "P2",
+      "author": "P6",
+      "version": "V5",
+      "weighted": 8.575,
+      "axes": {
+        "clarity": 8.8,
+        "quality": 8.7,
+        "consistency": 8.3,
+        "structure": 8.6,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P3",
+      "author": "P4",
+      "version": "V1",
+      "weighted": 8.35,
+      "axes": {
+        "clarity": 8,
+        "quality": 9,
+        "consistency": 8,
+        "structure": 8,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P3",
+      "author": "P6",
+      "version": "V2",
+      "weighted": 8.1,
+      "axes": {
+        "clarity": 9,
+        "quality": 8,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 7
+      }
+    },
+    {
+      "reviewer": "P3",
+      "author": "P2",
+      "version": "V3",
+      "weighted": 8.85,
+      "axes": {
+        "clarity": 9,
+        "quality": 9,
+        "consistency": 9,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P3",
+      "author": "P1",
+      "version": "V4",
+      "weighted": 8.6,
+      "axes": {
+        "clarity": 9,
+        "quality": 9,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P3",
+      "author": "P5",
+      "version": "V5",
+      "weighted": 8.25,
+      "axes": {
+        "clarity": 9,
+        "quality": 8,
+        "consistency": 8,
+        "structure": 9,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P4",
+      "author": "P1",
+      "version": "V1",
+      "weighted": 8.799999999999999,
+      "axes": {
+        "clarity": 9,
+        "quality": 9,
+        "consistency": 8.5,
+        "structure": 9,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P4",
+      "author": "P2",
+      "version": "V2",
+      "weighted": 8.725,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 9,
+        "consistency": 9,
+        "structure": 8.5,
+        "originality": 8
+      }
+    },
+    {
+      "reviewer": "P4",
+      "author": "P3",
+      "version": "V3",
+      "weighted": 8.649999999999999,
+      "axes": {
+        "clarity": 9,
+        "quality": 8.5,
+        "consistency": 8.5,
+        "structure": 8.5,
+        "originality": 9
+      }
+    },
+    {
+      "reviewer": "P4",
+      "author": "P5",
+      "version": "V4",
+      "weighted": 8.725,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 9,
+        "consistency": 8.5,
+        "structure": 9,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P4",
+      "author": "P6",
+      "version": "V5",
+      "weighted": 8.575,
+      "axes": {
+        "clarity": 9,
+        "quality": 8.5,
+        "consistency": 8.5,
+        "structure": 8.5,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P5",
+      "author": "P4",
+      "version": "V1",
+      "weighted": 8.514999999999999,
+      "axes": {
+        "clarity": 8.7,
+        "quality": 8.6,
+        "consistency": 8.4,
+        "structure": 8.7,
+        "originality": 8.2
+      }
+    },
+    {
+      "reviewer": "P5",
+      "author": "P2",
+      "version": "V2",
+      "weighted": 8.625,
+      "axes": {
+        "clarity": 8.8,
+        "quality": 8.7,
+        "consistency": 8.6,
+        "structure": 8.8,
+        "originality": 8.2
+      }
+    },
+    {
+      "reviewer": "P5",
+      "author": "P6",
+      "version": "V3",
+      "weighted": 8.370000000000001,
+      "axes": {
+        "clarity": 8.8,
+        "quality": 8.3,
+        "consistency": 8.3,
+        "structure": 8.7,
+        "originality": 8.0
+      }
+    },
+    {
+      "reviewer": "P5",
+      "author": "P1",
+      "version": "V4",
+      "weighted": 8.82,
+      "axes": {
+        "clarity": 9.0,
+        "quality": 8.9,
+        "consistency": 8.7,
+        "structure": 9.2,
+        "originality": 8.4
+      }
+    },
+    {
+      "reviewer": "P5",
+      "author": "P3",
+      "version": "V5",
+      "weighted": 8.375,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 8.4,
+        "consistency": 8.2,
+        "structure": 8.5,
+        "originality": 8.4
+      }
+    },
+    {
+      "reviewer": "P6",
+      "author": "P3",
+      "version": "V1",
+      "weighted": 8.1,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 8.0,
+        "consistency": 8.0,
+        "structure": 9.0,
+        "originality": 7.5
+      }
+    },
+    {
+      "reviewer": "P6",
+      "author": "P1",
+      "version": "V2",
+      "weighted": 8.799999999999999,
+      "axes": {
+        "clarity": 9.0,
+        "quality": 9.0,
+        "consistency": 8.5,
+        "structure": 9.0,
+        "originality": 8.5
+      }
+    },
+    {
+      "reviewer": "P6",
+      "author": "P2",
+      "version": "V3",
+      "weighted": 8.549999999999999,
+      "axes": {
+        "clarity": 9.0,
+        "quality": 8.5,
+        "consistency": 8.5,
+        "structure": 9.0,
+        "originality": 8.0
+      }
+    },
+    {
+      "reviewer": "P6",
+      "author": "P5",
+      "version": "V4",
+      "weighted": 8.424999999999999,
+      "axes": {
+        "clarity": 9.0,
+        "quality": 8.5,
+        "consistency": 8.0,
+        "structure": 9.0,
+        "originality": 8.0
+      }
+    },
+    {
+      "reviewer": "P6",
+      "author": "P4",
+      "version": "V5",
+      "weighted": 8.549999999999999,
+      "axes": {
+        "clarity": 8.5,
+        "quality": 8.5,
+        "consistency": 8.5,
+        "structure": 9.0,
+        "originality": 8.5
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "author": "P1",
+      "score": {
+        "mean": 8.782,
+        "variance": 0.009376000000000039,
+        "sd": 0.09682974749528184,
+        "min": 8.6,
+        "max": 8.89,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 9.0,
+          "variance": 0.0,
+          "sd": 0.0,
+          "min": 9.0,
+          "max": 9.0,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.98,
+          "variance": 0.0015999999999999886,
+          "sd": 0.039999999999999855,
+          "min": 8.9,
+          "max": 9.0,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.459999999999999,
+          "variance": 0.05839999999999991,
+          "sd": 0.24166091947189125,
+          "min": 8,
+          "max": 8.7,
+          "n": 5
+        },
+        "structure": {
+          "mean": 9.08,
+          "variance": 0.009599999999999932,
+          "sd": 0.09797958971132678,
+          "min": 9,
+          "max": 9.2,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.44,
+          "variance": 0.0664000000000001,
+          "sd": 0.2576819745345027,
+          "min": 8,
+          "max": 8.8,
+          "n": 5
+        }
+      }
+    },
+    {
+      "author": "P2",
+      "score": {
+        "mean": 8.639999999999999,
+        "variance": 0.01915000000000005,
+        "sd": 0.13838352503098067,
+        "min": 8.45,
+        "max": 8.85,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 8.66,
+          "variance": 0.14240000000000003,
+          "sd": 0.3773592452822642,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.84,
+          "variance": 0.04240000000000004,
+          "sd": 0.2059126028197401,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.62,
+          "variance": 0.1376,
+          "sd": 0.3709447398198282,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "structure": {
+          "mean": 8.86,
+          "variance": 0.03839999999999998,
+          "sd": 0.1959591794226542,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.04,
+          "variance": 0.006399999999999954,
+          "sd": 0.07999999999999971,
+          "min": 8,
+          "max": 8.2,
+          "n": 5
+        }
+      }
+    },
+    {
+      "author": "P4",
+      "score": {
+        "mean": 8.604,
+        "variance": 0.0464340000000001,
+        "sd": 0.2154854983519775,
+        "min": 8.35,
+        "max": 9.0,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 8.54,
+          "variance": 0.10639999999999995,
+          "sd": 0.3261901286060017,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.78,
+          "variance": 0.04160000000000003,
+          "sd": 0.20396078054371147,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.48,
+          "variance": 0.10159999999999998,
+          "sd": 0.31874754901018454,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "structure": {
+          "mean": 8.64,
+          "variance": 0.1384,
+          "sd": 0.3720215047547655,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.44,
+          "variance": 0.11440000000000007,
+          "sd": 0.3382306905057554,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        }
+      }
+    },
+    {
+      "author": "P5",
+      "score": {
+        "mean": 8.584999999999999,
+        "variance": 0.04415000000000008,
+        "sd": 0.21011901389450713,
+        "min": 8.25,
+        "max": 8.775,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 8.86,
+          "variance": 0.03839999999999998,
+          "sd": 0.1959591794226542,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.7,
+          "variance": 0.16,
+          "sd": 0.4,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.2,
+          "variance": 0.06,
+          "sd": 0.2449489742783178,
+          "min": 8,
+          "max": 8.5,
+          "n": 5
+        },
+        "structure": {
+          "mean": 8.98,
+          "variance": 0.0015999999999999886,
+          "sd": 0.039999999999999855,
+          "min": 8.9,
+          "max": 9,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.42,
+          "variance": 0.14559999999999998,
+          "sd": 0.3815756805667782,
+          "min": 8,
+          "max": 9,
+          "n": 5
+        }
+      }
+    },
+    {
+      "author": "P6",
+      "score": {
+        "mean": 8.374,
+        "variance": 0.03425399999999992,
+        "sd": 0.18507836178224596,
+        "min": 8.1,
+        "max": 8.575,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 8.92,
+          "variance": 0.009599999999999932,
+          "sd": 0.09797958971132678,
+          "min": 8.8,
+          "max": 9,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.3,
+          "variance": 0.07599999999999989,
+          "sd": 0.2756809750418042,
+          "min": 8,
+          "max": 8.7,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.22,
+          "variance": 0.03760000000000004,
+          "sd": 0.1939071942966533,
+          "min": 8,
+          "max": 8.5,
+          "n": 5
+        },
+        "structure": {
+          "mean": 8.76,
+          "variance": 0.04240000000000004,
+          "sd": 0.2059126028197401,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.0,
+          "variance": 0.3,
+          "sd": 0.5477225575051661,
+          "min": 7,
+          "max": 8.5,
+          "n": 5
+        }
+      }
+    },
+    {
+      "author": "P3",
+      "score": {
+        "mean": 8.363,
+        "variance": 0.034075999999999856,
+        "sd": 0.184596858044767,
+        "min": 8.1,
+        "max": 8.649999999999999,
+        "n": 5
+      },
+      "axes": {
+        "clarity": {
+          "mean": 8.74,
+          "variance": 0.050400000000000014,
+          "sd": 0.2244994432064365,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "quality": {
+          "mean": 8.28,
+          "variance": 0.053600000000000016,
+          "sd": 0.23151673805580456,
+          "min": 8,
+          "max": 8.5,
+          "n": 5
+        },
+        "consistency": {
+          "mean": 8.22,
+          "variance": 0.04160000000000003,
+          "sd": 0.20396078054371147,
+          "min": 8,
+          "max": 8.5,
+          "n": 5
+        },
+        "structure": {
+          "mean": 8.72,
+          "variance": 0.053600000000000016,
+          "sd": 0.23151673805580456,
+          "min": 8.5,
+          "max": 9,
+          "n": 5
+        },
+        "originality": {
+          "mean": 8.18,
+          "variance": 0.24960000000000004,
+          "sd": 0.4995998398718719,
+          "min": 7.5,
+          "max": 9,
+          "n": 5
+        }
+      }
+    }
+  ]
+}

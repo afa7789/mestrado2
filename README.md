@@ -1,22 +1,17 @@
-# ZK Research Library
+# Mestrado — pesquisa em ZK, criptografia e Web3
 
-Biblioteca de referências sobre zero-knowledge proofs, interoperabilidade, rollups, storage proofs e consensus proofs. O objetivo é manter papers, projetos, apresentações e materiais técnicos fáceis de consultar e compartilhar.
+Material de pesquisa e estudo do mestrado (UFMG).
 
-## Índices
+## Estrutura
 
-- [Papers](papers/README.md)
-- [Projetos e chains](projects/README.md)
-- [Playlists e conferências](playlists/README.md)
-- [Talks e apresentações](talks/README.md)
-- [Assuntos](topics/README.md)
+| Pasta / arquivo | O que tem |
+|---|---|
+| [`2026-09-13-open-problems/`](2026-09-13-open-problems/README.md) | Candidatos de pesquisa: papers, notas, página HTML, log de busca |
+| [`FOTOS_AULA/`](FOTOS_AULA/) | Aulas transcritas (`AULA_*`), guias de prova (`GUIA_PROVA_1/`) e `build-pdf.sh` |
+| [`pre-projeto/`](pre-projeto/) | Pré-projeto em LaTeX + `references.bib` |
+| [`outros/`](outros/00_MESTRADO_HOME.md) | Notas gerais, ideias de projeto, QAP |
+| `criptografia_chave_publica_BASICO.md` / `.pdf` | Guia de criptografia de chave pública |
+| `tasks/lessons.md` | Lições aprendidas (ex.: baixar PDFs de fontes bloqueadas) |
 
-## Escopo
-
-- ZK aplicado a privacidade, escalabilidade e interoperabilidade;
-- comunicação e intents cross-chain;
-- storage proofs e consensus proofs;
-- zkVMs, rollups e light clients;
-- Devcon, Devconnect e outras fontes técnicas relevantes.
-
-Os links externos apontam preferencialmente para documentação oficial, especificações, arXiv ou IACR ePrint. Uma associação entre talk e paper pode ser direta, fundacional ou apenas uma leitura relacionada; os mappings indicam essa diferença quando ela é conhecida.
-
+O buscador de papers fica em repo próprio: [BuscadorPaper](https://github.com/afa7789/BuscadorPaper)
+(clonado localmente em `grafo_procura_schoolar/`, ignorado aqui).

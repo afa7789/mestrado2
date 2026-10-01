@@ -11,6 +11,8 @@ monofontoptions: Scale=0.85
 header-includes:
   - \usepackage{amsmath,amssymb,amsthm}
   - \usepackage{booktabs}
+  - \usepackage{tikz}
+  - \usetikzlibrary{patterns,arrows.meta,calc}
   - \usepackage{newunicodechar}
   - \newunicodechar{✓}{\ensuremath{\checkmark}}
   - \newunicodechar{✔}{\ensuremath{\checkmark}}
@@ -366,396 +368,1487 @@ RSA cresce muito (NFS subexp.), ECC cresce linear (2× segurança) — só ataqu
 
 ## 4.1 O problema da distribuição de chaves
 
-**Camada 1 — Visão Geral:** Com só simétrica, `n` pessoas precisam `n(n-1)/2` chaves. 1000 pessoas =500 mil chaves. Inviável. Motivação histórica da chave pública (1976).
+**Camada 1 — Visão Geral:** Se um sistema utiliza exclusivamente criptografia simétrica, cada par de usuários precisa compartilhar uma chave secreta exclusiva. Em uma rede com $n$ participantes, o número total de chaves necessárias cresce quadraticamente:
 
-## 4.2 Diffie–Hellman (DHKE)
+$$
+\binom{n}{2} = \frac{n(n-1)}{2}
+$$
 
-**Camada 1 — Visão Geral:** Público: primo `p`, gerador `g`.
+*Exemplo:* Para $n = 1000$ usuários, são necessárias:
+$$
+\frac{1000 \times 999}{2} = 499.500 \text{ chaves secretas}
+$$
+Se cada novo funcionário entrar na empresa, ele precisaria trocar fisicamente uma chave com todos os outros. Isso é logisticamente inviável. Esta foi a motivação histórica que levou Whitfield Diffie, Martin Hellman e Ralph Merkle a proporem o conceito de criptografia de chave pública em 1976.
 
-```
-Alice                              Bob
-a aleatório                        b aleatório
-A = g^a mod p   ──── A ────▶
-                ◀─── B ────        B = g^b mod p
-s = B^a = g^(ab)                   s = A^b = g^(ab)
-```
+---
 
-**Camada 2 — Analogia (Mistura de tintas):** Alice e Bob têm uma cor pública `g`. Cada um mistura sua cor secreta (`a`/`b`) e troca o resultado. O espião vê as misturas, mas não consegue desfazer a mistura.
+## 4.2 Diffie–Hellman Key Exchange (DHKE)
 
-**Camada 3 — Validação (`p=23,g=5`):** `a=6→A=8`, `b=15→B=19`, `s=19⁶≡2` e `8¹⁵≡2` ✓. Espião vê `p,g,A,B` e precisaria resolver CDH. Na prática `s` passa por KDF antes de virar AES.
+**Camada 1 — Visão Geral:** O protocolo de Diffie–Hellman permite que duas partes (Alice e Bob), comunicando-se através de um canal totalmente público e monitorado por um espião passivo (Eve), estabeleçam um segredo compartilhado idêntico sem nunca terem se encontrado antes.
 
-**Camada 4 — Resumo:** Sem KDF, sem autenticação.
+### Protocolo Formal
 
-## 4.3 Man-in-the-middle
+1. **Parâmetros Públicos:** Alice e Bob concordam publicamente em um número primo grande $p$ e um gerador $g$ de um subgrupo de $\mathbb{Z}_p^*$ com ordem prima $q$.
+2. **Alice:** escolhe um segredo privado $a \xleftarrow{R} \mathbb{Z}_q$ e calcula sua chave pública $A \equiv g^a \pmod p$.
+3. **Bob:** escolhe um segredo privado $b \xleftarrow{R} \mathbb{Z}_q$ e calcula sua chave pública $B \equiv g^b \pmod p$.
 
-**Camada 1 — Visão Geral:** DH puro **não autentica**.
+$$
+\begin{array}{ccc}
+\textbf{Alice} & & \textbf{Bob} \\
+\text{Segredo: } a \in \mathbb{Z}_q & & \text{Segredo: } b \in \mathbb{Z}_q \\[4pt]
+A = g^a \bmod p & \xrightarrow{\quad\quad A \quad\quad} & \\[4pt]
+& \xleftarrow{\quad\quad B \quad\quad} & B = g^b \bmod p \\[6pt]
+\text{Calcula segredo:} & & \text{Calcula segredo:} \\
+s_A \equiv B^a \pmod p & & s_B \equiv A^b \pmod p
+\end{array}
+$$
 
-```
-Alice ──A──▶ Mallory ──M──▶ Bob
-Alice ◀─M─── Mallory ◀──B── Bob
-```
+**Corretude Matemática:**
+Ambos chegam exatamente ao mesmo valor numérico $s$, pois as potências comutam:
+$$
+s_A \equiv (g^b \bmod p)^a \equiv g^{ba} \equiv g^{ab} \equiv (g^a \bmod p)^b \equiv s_B \pmod p
+$$
 
-**Camada 2 — Analogia:** Mallory faz duas trocas separadas e fica no meio lendo tudo.
+**Camada 2 — Analogia Concreta (Mistura de Tintas):**
+- Alice e Bob concordam publicamente em uma cor base comum (ex: **amarelo** $= g$).
+- Alice escolhe em segredo uma tinta **vermelha** ($= a$) e a mistura com o amarelo, obtendo **laranja** ($= A$), que ela envia publicamente a Bob.
+- Bob escolhe em segredo uma tinta **azul** ($= b$) e a mistura com o amarelo, obtendo **verde** ($= B$), que ele envia publicamente a Alice.
+- O espião Eve vê as misturas laranja e verde passando pelo canal, mas é fisicamente inviável separar os pigmentos originais (este é o problema do Logaritmo Discreto).
+- Alice adiciona seu vermelho secreto à mistura verde de Bob; Bob adiciona seu azul secreto à mistura laranja de Alice. Ambos obtêm exatamente a mesma cor castanha final ($= g^{ab}$).
 
-**Camada 3 — Validação:** Com `M` diferentes, ambos acham que estão seguros mas não estão.
+**Camada 3 — Validação Prática com Números Pequenos ($p = 23$, $g = 5$):**
+- Parâmetros públicos: $p = 23$ (primo), $g = 5$.
+- Alice escolhe segredo privado $a = 6$.
+  $$A \equiv 5^6 \pmod{23}$$
+  Como $5^2 = 25 \equiv 2 \pmod{23}$, temos $5^6 = (5^2)^3 \equiv 2^3 = 8 \pmod{23}$. Logo, **Alice envia $A = 8$**.
+- Bob escolhe segredo privado $b = 15$.
+  $$B \equiv 5^{15} \pmod{23}$$
+  Como $5^6 \equiv 8$, temos $5^{12} \equiv 8^2 = 64 \equiv 18 \equiv -5 \pmod{23}$.
+  Então $5^{15} = 5^{12} \times 5^3 \equiv (-5) \times (125 \bmod 23) \equiv (-5) \times 10 = -50 \equiv 19 \pmod{23}$. Logo, **Bob envia $B = 19$**.
+- **Cálculo do Segredo por Alice:**
+  $$s_A \equiv B^a \equiv 19^6 \equiv (-4)^6 = 4096 \pmod{23}$$
+  Dividindo $4096$ por $23$: $4096 = 23 \times 178 + 2 \implies s_A \equiv 2 \pmod{23}$.
+- **Cálculo do Segredo por Bob:**
+  $$s_B \equiv A^b \equiv 8^{15} \pmod{23}$$
+  Como $8^2 = 64 \equiv 18 \equiv -5 \pmod{23}$, temos $8^4 \equiv (-5)^2 = 25 \equiv 2 \pmod{23}$, $8^8 \equiv 4 \pmod{23}$, $8^{14} \equiv 8^8 \times 8^4 \times 8^2 \equiv 4 \times 2 \times (-5) = -40 \equiv 6 \pmod{23}$.
+  Multiplicando por $8$: $s_B \equiv 6 \times 8 = 48 = 2 \times 23 + 2 \equiv 2 \pmod{23}$.
+- **Conclusão:** Ambos obtiveram $s = 2 \pmod{23}$ com absoluta exatidão!
 
-**Camada 4 — Resumo:** **Conserto:** autenticar DH com assinatura + certificado (§6) — é o TLS.
+> **O papel vital da KDF (Key Derivation Function):**
+> O número $s = g^{ab} \bmod p$ **nunca** deve ser usado diretamente como chave simétrica de cifra (ex: AES). Razões:
+> 1. Os elementos de $\mathbb{Z}_p^*$ não possuem distribuição uniforme em strings de bits $\{0,1\}^{256}$.
+> 2. Se a hipótese DDH vazar resíduos quadráticos, alguns bits de $s$ são previsíveis.
+> **Solução:** Aplica-se uma função de derivação de chave (ex: HKDF com SHA-256):
+> $$k = \mathrm{HKDF}(s)$$
+
+**Camada 4 — Resumo Estruturado:**
+
+| Propriedade | Descrição |
+|---|---|
+| **O que o atacante passivo (Eve) vê:** | $p$, $g$, $A = g^a \bmod p$, $B = g^b \bmod p$ |
+| **O que Eve quer descobrir:** | O segredo $s = g^{ab} \bmod p$ |
+| **Problema subjacente:** | **CDH (Computational Diffie-Hellman):** calcular $g^{ab}$ a partir de $g^a$ e $g^b$ |
+| **Ataque trivial se DL for quebrado:** | Achar $a = \log_g A \pmod p$, depois calcular $s = B^a \bmod p$ |
+| **Limitação fundamental:** | Não fornece autenticação de origem (vulnerável a MITM) |
+
+---
+
+## 4.3 Man-in-the-Middle (MITM) — A Fraqueza Mortal do DH Puro
+
+**Camada 1 — Visão Geral:** O protocolo Diffie–Hellman padrão garante confidencialidade contra espiões **passivos** (que apenas escutam o canal), mas é completamente indefeso contra um adversário **ativo** (Mallory), capaz de interceptar, bloquear e alterar mensagens em trânsito.
+
+### O Ataque Passo a Passo
+
+Mallory se posiciona entre Alice e Bob e executa **duas trocas DH independentes e simultâneas**: uma fingindo ser Bob para Alice, e outra fingindo ser Alice para Bob.
+
+$$
+\begin{array}{ccccc}
+\textbf{Alice} & & \textbf{Mallory (Atacante)} & & \textbf{Bob} \\
+\text{gera } a & & \text{gera } m_1, m_2 & & \text{gera } b \\[4pt]
+A = g^a \bmod p & \xrightarrow{\quad A \quad} & \text{bloqueia } A & & \\
+& & M_1 = g^{m_1} \bmod p & \xrightarrow{\quad M_1 \quad} & \text{recebe } M_1 \\[4pt]
+& & \text{bloqueia } B & \xleftarrow{\quad B \quad} & B = g^b \bmod p \\
+\text{recebe } M_2 & \xleftarrow{\quad M_2 \quad} & M_2 = g^{m_2} \bmod p & & \\[6pt]
+\text{Segredo Alice–Mallory:} & & \text{Dois segredos:} & & \text{Segredo Bob–Mallory:} \\
+s_1 \equiv (M_2)^a \pmod p & & s_1 \equiv A^{m_2} \pmod p & & s_2 \equiv (M_1)^b \pmod p \\
+& & s_2 \equiv B^{m_1} \pmod p & &
+\end{array}
+$$
+
+**Resultado do Ataque:**
+1. Alice cifra mensagens usando a chave simétrica derivada de $s_1$.
+2. Mallory intercepta o tráfego, decifra com $s_1$, lê e altera a mensagem à vontade.
+3. Mallory recifra a mensagem adulterada com $s_2$ e a repassa a Bob.
+4. Bob decifra normalmente com $s_2$ e acredita genuinamente que a mensagem veio de Alice.
+
+**Camada 2 — Analogia:** É como um tradutor falso sentado entre dois diplomatas que falam línguas diferentes: o tradutor escuta Alice, anota os segredos, inventa o que quiser e repassa para Bob com voz convincente.
+
+**Camada 3 — Validação:** O ataque funciona porque Alice recebe $M_2$ e não tem **nenhuma forma de verificar** se aquele valor $g^{m_2}$ foi de fato gerado por Bob ou por um terceiro. Números avulsos não carregam identidade.
+
+**Camada 4 — Resumo e Conserto Definitivo:**
+- **Regra de ouro:** Diffie–Hellman puro estabelece canal cifrado, mas **não autentica as pontas**.
+- **Solução no mundo real:** Chaves públicas efêmeras de DH precisam ser **assinadas digitalmente** por uma autoridade confiável através de certificados digitais (X.509) — esta é a fundação do protocolo **TLS 1.3** utilizado no HTTPS.
 
 ---
 
 # 5. Cifragem de Chave Pública
 
-## 5.1 Sintaxe e segurança
+## 5.1 Sintaxe e Noções de Segurança Formal
 
-**Camada 1 — Visão Geral:** `Gen()→(pk,sk)`, `Enc(pk,m)→c`, `Dec(sk,c)→m`.
+**Camada 1 — Visão Geral:** Um esquema de cifragem de chave pública (ou assimétrica) é uma tupla de três algoritmos em tempo polinomial probabilístico $(\mathrm{Gen}, \mathrm{Enc}, \mathrm{Dec})$:
 
-- **CPA:** adversário escolhe `m₀,m₁`, recebe cifra de um, não adivinha. **Exige aleatorização** — determinístico nunca é CPA-seguro.
-- **CCA:** adversário ainda pode pedir decifragens (menos a alvo). Exige não-maleabilidade. É o que se exige na prática.
+1. **$\mathrm{Gen}(1^\lambda) \to (\mathrm{pk}, \mathrm{sk})$:** Algoritmo probabilístico que recebe o parâmetro de segurança $\lambda$ e gera um par de chaves: a chave pública $\mathrm{pk}$ (distribuída livremente) e a chave privada $\mathrm{sk}$ (mantida em segredo absoluto).
+2. **$\mathrm{Enc}(\mathrm{pk}, m) \to c$:** Algoritmo (geralmente probabilístico) que usa a chave pública $\mathrm{pk}$ para transformar a mensagem clara $m \in \mathcal{M}$ em um texto cifrado $c \in \mathcal{C}$.
+3. **$\mathrm{Dec}(\mathrm{sk}, c) \to m$:** Algoritmo determinístico que usa a chave privada $\mathrm{sk}$ para recuperar a mensagem original $m$. Se $c$ for inválido, retorna um símbolo de erro $\bot$.
 
-## 5.2 Cifragem híbrida / KEM-DEM
+**Corretude:** Para todo par gerado $(\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{Gen}(1^\lambda)$ e toda mensagem $m \in \mathcal{M}$:
+$$
+\mathrm{Dec}(\mathrm{sk}, \mathrm{Enc}(\mathrm{pk}, m)) = m
+$$
 
-**Camada 1 — Visão Geral:** Chave pública é lenta e só cifra pouco. Então:
-1. **KEM:** transporta chave simétrica `k` aleatória com chave pública
-2. **DEM:** cifra mensagem com `k` via AES-GCM → `c=(Enc_pk(k), AES_k(m))`
+---
 
-**Camada 4 — Resumo:** Todo sistema real é híbrido (TLS, PGP, Signal). Segurança = elo mais fraco.
+### O Experimento CPA (Chosen-Plaintext Attack)
 
-## 5.3 ElGamal (baseado em DDH)
+Na criptografia assimétrica, **todo adversário tem capacidade de realizar ataques de texto claro escolhido (CPA)** por definição, pois ele possui a chave pública $\mathrm{pk}$ e pode cifrar quantas mensagens desejar por conta própria.
 
-**Camada 1 — Visão Geral:** DH transformado em cifra.
-- Chaves: `sk=x`, `pk=h=g^x`
-- Cifrar `m`: sorteia `r`, `c=(g^r, m·h^r)`
-- Decifrar `(c₁,c₂)`: `m=c₂/c₁^x`
+A segurança semântica contra CPA é modelada pelo seguinte jogo interativo entre o Adversário $\mathcal{A}$ e um Desafiador (Challenger):
 
-**Camada 3 — Validação:** `c₁^x = g^(rx)=h^r` → cancela.
+$$
+\begin{array}{ccc}
+\textbf{Adversário } \mathcal{A} & & \textbf{Desafiador} \\[4pt]
+& \xleftarrow{\quad\quad \mathrm{pk} \quad\quad} & (\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{Gen}(1^\lambda) \\[4pt]
+\text{Escolhe } m_0, m_1 \text{ com } |m_0| = |m_1| & \xrightarrow{\quad m_0, \, m_1 \quad} & \text{Sorteia bit } b \xleftarrow{R} \{0,1\} \\[4pt]
+& \xleftarrow{\quad\quad c \quad\quad} & c \leftarrow \mathrm{Enc}(\mathrm{pk}, m_b) \\[6pt]
+\text{Produz palpite } b' \in \{0,1\} & & \mathcal{A} \text{ vence se } b' = b
+\end{array}
+$$
 
-**Camada 4 — Resumo:**
+**Definição:** Um esquema é **CPA-seguro** (indistinguível sob ataque por texto claro escolhido) se, para todo adversário PPT $\mathcal{A}$, a probabilidade de vitória satisfaz:
+$$
+\Pr[\mathcal{A} \text{ vence}] \leq \frac{1}{2} + \mathrm{negl}(\lambda)
+$$
 
-| Propriedade | Valor |
-|---|---|
-| Aleatorizado? | Sim → CPA-seguro sob DDH ✔ |
-| Expansão | 2× |
-| Maleável? | Sim → **NÃO CCA-seguro** (útil em voto eletrônico) |
-| Reuso de `r`? | **Nunca** |
+> **Teorema Fundamental:** Nenhuma cifra determinística de chave pública pode ser CPA-segura.
+> 
+> *Demonstração:* Se $\mathrm{Enc}$ for determinística, o adversário $\mathcal{A}$, ao receber o cifrado desafio $c$, simplesmente calcula por conta própria:
+> $$c_0 = \mathrm{Enc}(\mathrm{pk}, m_0)$$
+> Se $c = c_0$, ele responde com certeza $b' = 0$; caso contrário, responde $b' = 1$. O adversário vence com probabilidade $1$ ($\text{vantagem } = 1/2$).
+> **Conclusão:** Todo esquema de chave pública precisa ser **probabilístico (randomizado)**.
 
-*Versão moderna (KEM):* manda só `c₁=g^r`, `k=KDF(h^r)` → ECIES/HPKE.
+---
 
-## 5.4 RSA cru ("textbook")
+### O Experimento CCA (Chosen-Ciphertext Attack / IND-CCA2)
 
-**Camada 1 — Visão Geral:**
-- **Gen:** `p,q`, `N=pq`, `φ=(p-1)(q-1)`, `e=65537`, `d=e⁻¹ mod φ`, `pk=(N,e)`, `sk=d`.
-- **Enc:** `c=m^e mod N`, **Dec:** `m=c^d mod N`.
+Em cenários reais, o adversário frequentemente consegue induzir o sistema a decifrar mensagens modificadas (por exemplo, analisando mensagens de erro de rede, códigos de status ou respostas de servidores). Isso é capturado pelo modelo **CCA**:
 
-**Camada 2 — Analogia:** Fechar cadeado = elevar a `e`, abrir = elevar a `d`. Só quem sabe `φ` (quem fatorou) sabe `d`.
+1. O adversário recebe $\mathrm{pk}$ e ganha acesso a um **Oráculo de Decifragem** $\mathcal{O}_{\mathrm{Dec}}(\cdot)$, podendo solicitar a decifragem de quaisquer textos cifrados $c_i$ que desejar.
+2. O adversário escolhe $m_0, m_1$ e recebe o desafio $c^* = \mathrm{Enc}(\mathrm{pk}, m_b)$.
+3. O adversário continua com acesso ao oráculo $\mathcal{O}_{\mathrm{Dec}}(\cdot)$ para qualquer cifrado $c'$, **com a única restrição de que $c' \neq c^*$**.
+4. $\mathcal{A}$ vence se adivinhar o bit $b$.
 
-**Camada 3 — Validação (miniatura `p=3,q=11,N=33,φ=20,e=3,d=7,m=4`):** `c=4³=64≡31`, `31⁷ mod33=4` ✓. Por quê? `ed=1+kφ` → `m^(1+kφ)=m·(m^φ)^k≡m`.
+> **O perigo da Maleabilidade:** Se um esquema permitir que o adversário transforme $c = \mathrm{Enc}(\mathrm{pk}, m)$ em um novo cifrado válido $c' = \mathrm{Enc}(\mathrm{pk}, 2m)$ sem conhecer $m$, o esquema é **maleável**.
+> O adversário simplesmente envia $c'$ ao oráculo de decifragem, recebe $2m$, divide por 2 e descobre $m$ com sucesso trivial.
+> **Exigência prática:** Todo sistema de produção exige segurança **IND-CCA2 (Não-Maleável)**.
 
-**Camada 4 — Resumo (por que é INSEGURO sem padding):**
-1. determinístico → não CPA-seguro
-2. maleável → `c·s^e` decifra `m·s`
-3. `m` pequeno sem redução → raiz e-ésima
-4. broadcast com mesmo `m` → Håstad
-> **Nunca use RSA sem padding.**
+---
 
-## 5.5 Padding — PKCS #1 v1.5
+## 5.2 Cifragem Híbrida (KEM-DEM)
 
-**Camada 1 — Visão Geral:** `EM=0x00||0x02||PS||0x00||m` → adiciona aleatoriedade.
+**Camada 1 — Visão Geral:** Criptografia de chave pública possui duas limitações severas na prática:
+1. **Desempenho:** É entre 100 e 1000 vezes mais lenta que a criptografia simétrica.
+2. **Capacidade:** O tamanho da mensagem $m$ é estritamente limitado pelo tamanho do módulo (ex: no RSA-2048, não é possível cifrar mais do que 245 bytes diretamente).
 
-**Camada 3 — Validação (ataque):** **Bleichenbacher (1998):** oráculo de 1 bit (padding válido/inválido) decifra com ~1M consultas. Voltou como ROBOT em 2017.
+Para resolver isso, toda a criptografia moderna de chave pública (TLS, Signal, PGP, SSH) adota a **Cifragem Híbrida**, decomposta em dois módulos independentes:
 
-**Camada 4 — Resumo:** Legado para cifragem, evitar.
+```
++--------------------------------------------------------------------------------+
+| CIFRAGEM HÍBRIDA                                                               |
+|                                                                                |
+|  1. KEM (Key Encapsulation Mechanism)                                          |
+|     Gera chave simétrica aleatória k <- {0,1}^256                              |
+|     Cifra k com chave pública do destinatário: c_kem = Enc_pk(k)               |
+|                                                                                |
+|  2. DEM (Data Encapsulation Mechanism)                                         |
+|     Cifra os dados longos M usando k com cifra simétrica rápida:               |
+|     c_dem = AES-256-GCM_k(M)                                                   |
+|                                                                                |
+|  Pacote final transmitido: C = (c_kem, c_dem)                                  |
++--------------------------------------------------------------------------------+
+```
 
-## 5.6 OAEP (PKCS #1 v2)
+**Decifragem:**
+1. O destinatário usa sua chave privada $\mathrm{sk}$ no KEM para decifrar $c_{\mathrm{kem}}$ e recuperar a chave simétrica $k$.
+2. Usa $k$ no DEM para decifrar e validar a integridade de $c_{\mathrm{dem}}$ via AES-GCM.
 
-**Camada 1 — Visão Geral:** Padding Feistel com hashes/máscaras, CCA-seguro no ROM, erro único em tempo constante.
+**Camada 4 — Resumo:** Se o KEM for IND-CCA2 e o DEM for AEAD (cifra autenticada), o sistema híbrido resultante é provadamente IND-CCA2. O padrão moderno que formaliza essa arquitetura é o **HPKE (Hybrid Public Key Encryption — RFC 9180)**.
 
-**Camada 4 — Resumo:** **Use ECDH/HPKE ou RSA-OAEP. Nunca cru, nunca v1.5.**
+---
+
+## 5.3 Criptossistema ElGamal
+
+**Camada 1 — Visão Geral:** Proposto por Taher Elgamal em 1985, adapta o princípio de troca de chaves Diffie–Hellman diretamente para a cifragem de mensagens.
+
+### Algoritmo Formal
+
+1. **Geração de Chaves ($\mathrm{Gen}$):**
+   - Escolhe-se um grupo cíclico $G$ de ordem prima $q$ com gerador $g$, no qual o problema DDH seja difícil (por exemplo, um subgrupo de $\mathbb{Z}_p^*$).
+   - Escolhe-se o segredo privado $x \xleftarrow{R} \mathbb{Z}_q$.
+   - Calcula-se a chave pública $h \equiv g^x \pmod p$.
+   - **Chave pública:** $(p, q, g, h)$
+   - **Chave privada:** $x$
+
+2. **Cifragem ($\mathrm{Enc}$):**
+   - Para cifrar uma mensagem $m \in G$ usando a chave pública $h$:
+   - Sorteia-se um **nonce efêmero** aleatório $r \xleftarrow{R} \mathbb{Z}_q$.
+   - O texto cifrado é o par $(c_1, c_2)$ dado por:
+     $$
+     c_1 \equiv g^r \pmod p, \qquad c_2 \equiv m \cdot h^r \pmod p
+     $$
+
+3. **Decifragem ($\mathrm{Dec}$):**
+   - O receptor usa sua chave privada $x$ para remover a máscara:
+     $$
+     s \equiv c_1^x \pmod p
+     $$
+   - Multiplica $c_2$ pelo inverso multiplicativo modular de $s$:
+     $$
+     m \equiv c_2 \cdot (c_1^x)^{-1} \pmod p
+     $$
+
+---
+
+### Demonstração Algébrica da Corretude
+
+Por que a decifragem recupera exatamente $m$?
+Substituindo as definições de $c_1$ e $c_2$:
+$$
+\frac{c_2}{c_1^x} \equiv \frac{m \cdot h^r}{(g^r)^x} \equiv \frac{m \cdot (g^x)^r}{g^{rx}} \equiv \frac{m \cdot g^{xr}}{g^{rx}} \equiv m \cdot 1 \equiv m \pmod p
+$$
+Como a operação ocorre em um corpo finito $\mathbb{F}_p$, a "divisão" é rigorosamente executada multiplicando pelo inverso modular $(c_1^x)^{-1} \pmod p$.
+
+---
+
+### Validação com Números Pequenos Passo a Passo
+
+Vamos validar com $p = 23$, $g = 5$, cuja ordem é $q = 22$.
+
+- **Setup de Chaves de Bob:**
+  - Bob escolhe chave privada $x = 6$.
+  - Calcula chave pública: $h \equiv 5^6 \pmod{23}$.
+    $$5^2 = 25 \equiv 2 \pmod{23} \implies 5^6 = (5^2)^3 \equiv 2^3 = 8 \pmod{23}$$
+    Logo, **chave pública $h = 8$**.
+
+- **Alice Cifra a Mensagem $m = 10$:**
+  - Alice escolhe nonce efêmero aleatório $r = 3$.
+  - Calcula $c_1$:
+    $$c_1 \equiv g^r \equiv 5^3 = 125 = 5 \times 23 + 10 \equiv 10 \pmod{23}$$
+  - Calcula a máscara compartilhada:
+    $$h^r \equiv 8^3 = 512 = 22 \times 23 + 6 \equiv 6 \pmod{23}$$
+  - Calcula $c_2$:
+    $$c_2 \equiv m \cdot h^r \equiv 10 \times 6 = 60 = 2 \times 23 + 14 \equiv 14 \pmod{23}$$
+  - Alice envia a Bob o par cifrado: **$(c_1, c_2) = (10, 14)$**.
+
+- **Bob Decifra com sua Chave Privada $x = 6$:**
+  1. Bob calcula a máscara a partir de $c_1$:
+     $$s \equiv c_1^x \equiv 10^6 \pmod{23}$$
+     Calculando potências de 10 em $\bmod 23$:
+     $$10^2 = 100 = 4 \times 23 + 8 \equiv 8 \pmod{23}$$
+     $$10^6 = (10^2)^3 \equiv 8^3 = 512 \equiv 6 \pmod{23}$$
+     Bob descobre que a máscara compartilhada vale $s = 6$.
+  2. Bob encontra o inverso modular $6^{-1} \pmod{23}$:
+     Procuramos $y$ tal que $6y \equiv 1 \pmod{23}$.
+     $$6 \times 4 = 24 = 23 + 1 \equiv 1 \pmod{23} \implies 6^{-1} \equiv 4 \pmod{23}$$
+  3. Bob recupera a mensagem original:
+     $$m \equiv c_2 \cdot 6^{-1} \equiv 14 \times 4 = 56 = 2 \times 23 + 10 \equiv 10 \pmod{23}$$
+     A mensagem decifrada é exatamente **$m = 10$**!
+
+---
+
+### Análise de Segurança e Fraquezas de ElGamal
+
+1. **Segurança CPA:** ElGamal é semanticamente seguro (IND-CPA) se e somente se a hipótese **DDH (Decisional Diffie-Hellman)** for verdadeira no grupo $G$. Como a cada cifragem sorteia-se um novo $r$, a mesma mensagem cifrada duas vezes produz textos cifrados completamente diferentes.
+2. **Expansão de Texto:** O texto cifrado consiste em dois elementos de grupo $(c_1, c_2)$, tendo o dobro do tamanho da mensagem clara ($2\times$).
+3. **Maleabilidade (Inseguro contra CCA):**
+   Dado um cifrado válido $(c_1, c_2) = (g^r, m \cdot h^r)$, qualquer pessoa pode multiplicar a segunda coordenada por uma constante $\alpha \in G$:
+   $$(c_1, c_2') = (c_1, \alpha \cdot c_2) = (g^r, (\alpha \cdot m) \cdot h^r)$$
+   Este novo par é um texto cifrado perfeitamente válido para a mensagem $\alpha \cdot m \pmod p$. Logo, **ElGamal é maleável e NÃO é IND-CCA2**.
+4. **O Desastre da Reutilização do Nonce $r$:**
+   Se o remetente cifrar duas mensagens $m_1$ e $m_2$ usando o mesmo nonce $r$:
+   $$c_2^{(1)} \equiv m_1 \cdot h^r \pmod p, \qquad c_2^{(2)} \equiv m_2 \cdot h^r \pmod p$$
+   O atacante divide as duas cifras públicas:
+   $$\frac{c_2^{(1)}}{c_2^{(2)}} \equiv \frac{m_1 \cdot h^r}{m_2 \cdot h^r} \equiv \frac{m_1}{m_2} \pmod p$$
+   Se o atacante conhecer ou adivinhar $m_1$, ele calcula $m_2$ imediatamente sem chave privada!
+
+---
+
+## 5.4 RSA de Livro-Texto (Textbook RSA)
+
+**Camada 1 — Visão Geral:** Criado por Ron Rivest, Adi Shamir e Leonard Adleman em 1977, baseia-se na assimetria computacional entre multiplicar primos e fatorar o produto resultante.
+
+### Geração de Chaves Passo a Passo
+
+1. Escolhem-se aleatoriamente dois números primos grandes e distintos $p$ e $q$ de mesmo tamanho de bits (ex: 1024 bits cada).
+2. Calcula-se o módulo composto:
+   $$N = p \cdot q$$
+3. Calcula-se a função totiente de Euler de $N$:
+   $$\varphi(N) = (p-1)(q-1)$$
+4. Escolhe-se um expoente público $e$ tal que:
+   $$\gcd(e, \varphi(N)) = 1 \quad \text{e} \quad 1 < e < \varphi(N)$$
+   *Padrão universal da indústria:* $e = 65537 = 2^{16} + 1$ (possui apenas dois bits '1' na representação binária, permitindo square-and-multiply ultrarrápido).
+5. Calcula-se o expoente privado $d$ como o inverso multiplicativo de $e$ módulo $\varphi(N)$:
+   $$e \cdot d \equiv 1 \pmod{\varphi(N)}$$
+   (Calculado eficientemente através do Algoritmo Estendido de Euclides).
+
+- **Chave pública:** $(\mathrm{pk}) = (N, e)$
+- **Chave privada:** $(\mathrm{sk}) = (N, d)$ ou diretamente os fatores $(p, q)$
+
+---
+
+### Operações
+
+- **Cifragem:** Para $m \in \{0, \dots, N-1\}$:
+  $$
+  c \equiv m^e \pmod N
+  $$
+- **Decifragem:** Para recuperar $m$:
+  $$
+  m \equiv c^d \pmod N
+  $$
+
+### Demonstração da Corretude com o Teorema de Euler
+
+Como $e \cdot d \equiv 1 \pmod{\varphi(N)}$, existe um número inteiro $k$ tal que:
+$$
+e \cdot d = 1 + k \cdot \varphi(N)
+$$
+Ao decifrar o texto cifrado:
+$$
+c^d \equiv (m^e)^d \equiv m^{ed} \equiv m^{1 + k\varphi(N)} \equiv m \cdot (m^{\varphi(N)})^k \pmod N
+$$
+Pelo **Teorema de Euler**, para qualquer $m$ coprimo com $N$ ($\gcd(m, N) = 1$):
+$$
+m^{\varphi(N)} \equiv 1 \pmod N
+$$
+Substituindo na equação:
+$$
+c^d \equiv m \cdot (1)^k \equiv m \pmod N
+$$
+*(Nota: mesmo se $\gcd(m, N) \neq 1$, a igualdade ainda se sustenta identicamente usando o Teorema Chinês do Resto módulo $p$ e módulo $q$)*.
+
+---
+
+### Validação com Números Pequenos Passo a Passo
+
+- **Setup de Parâmetros:**
+  - Primos: $p = 3$, $q = 11$.
+  - Módulo: $N = 3 \times 11 = 33$.
+  - Totiente: $\varphi(N) = (3-1)(11-1) = 2 \times 10 = 20$.
+  - Expoente público: $e = 3$. Verificação: $\gcd(3, 20) = 1$ ✓.
+  - Expoente privado $d$: procuramos $d$ tal que $3d \equiv 1 \pmod{20}$.
+    $$3 \times 7 = 21 = 20 + 1 \equiv 1 \pmod{20} \implies d = 7$$
+  - Par público: $(N = 33, e = 3)$. Segredo privado: $d = 7$.
+
+- **Cifragem de $m = 4$:**
+  $$c \equiv m^e \equiv 4^3 = 64 \pmod{33}$$
+  Dividindo $64$ por $33$: $64 = 1 \times 33 + 31 \implies c = 31$.
+
+- **Decifragem de $c = 31$:**
+  $$m \equiv c^d \equiv 31^7 \pmod{33}$$
+  Simplificando a base antes de exponenciar:
+  $$31 \equiv -2 \pmod{33}$$
+  $$31^7 \equiv (-2)^7 = -128 \pmod{33}$$
+  Dividindo $-128$ por $33$:
+  $$-128 = (-4) \times 33 + 4 \implies m \equiv 4 \pmod{33}$$
+  A mensagem recuperada foi exatamente **$m = 4$**!
+
+---
+
+### Por que o RSA de Livro-Texto é Freqüentemente Fatal em Sistemas Reais?
+
+O RSA cru ("textbook") **nunca** deve ser usado em nenhum sistema de produção devido a 4 vulnerabilidades devastadoras:
+
+1. **É Totalmente Determinístico:**
+   A mesma mensagem $m$ sempre gera o mesmo cifrado $c$. Isso destrói a segurança semântica: o atacante pode testar palpites triviais (ex: cifrar "SIM" e "NÃO" e comparar com o tráfego interceptado).
+2. **Homomorfismo Multiplicativo e Maleabilidade:**
+   Sejam $c_1 \equiv m_1^e \pmod N$ e $c_2 \equiv m_2^e \pmod N$. Então:
+   $$c_1 \cdot c_2 \equiv (m_1 \cdot m_2)^e \pmod N$$
+   *Ataque prático de manipulação:* Um atacante intercepta $c = m^e \pmod N$. Ele escolhe um fator arbitrário $s$ e calcula:
+   $$c' \equiv c \cdot s^e \equiv (m \cdot s)^e \pmod N$$
+   Ao enviar $c'$ para a vítima decifrar, o resultado é $m \cdot s \pmod N$. Se o atacante souber que $c$ era uma proposta monetária em um contrato, ele pode dobrar o valor ($s=2$) sem precisar conhecer a chave privada nem saber quanto valia a proposta original!
+3. **Ataque da Raiz Direta ($m^e < N$):**
+   Se o expoente público for $e = 3$ e a mensagem $m$ for curta (ex: $m = 100$), temos $m^3 = 1.000.000$. Se $N$ tiver 2048 bits ($N \approx 10^{616}$), a operação $m^3 \bmod N$ **não sofre redução modular** ($m^e < N$).
+   O atacante calcula a raiz cúbica ordinária nos números reais:
+   $$m = \sqrt[3]{c}$$
+   e quebra o segredo instantaneamente!
+4. **Ataque de Håstad (Broadcast com $e=3$):**
+   Se a mesma mensagem $m$ for enviada para 3 pessoas diferentes que usam $e=3$ com módulos $N_1, N_2, N_3$ coprimos:
+   $$c_1 \equiv m^3 \pmod{N_1}, \quad c_2 \equiv m^3 \pmod{N_2}, \quad c_3 \equiv m^3 \pmod{N_3}$$
+   Usando o Teorema Chinês do Resto, o atacante encontra $C \equiv m^3 \pmod{N_1 N_2 N_3}$. Como $m < N_i$, temos $m^3 < N_1 N_2 N_3$, logo nenhuma redução modular ocorreu no módulo combinado. Basta extrair a raiz cúbica inteira $\sqrt[3]{C}$ para achar $m$.
+
+---
+
+## 5.5 O Padding PKCS #1 v1.5 e o Ataque de Bleichenbacher
+
+Para impedir os ataques ao RSA cru, desenvolveu-se o padrão **PKCS #1 v1.5**, que insere bytes de preenchimento (padding) aleatório na mensagem antes de elevar a $e$.
+
+### Estrutura do Bloco Formatado (para módulo de $k$ bytes)
+
+$$
+\begin{array}{|c|c|c|c|c|}
+\hline
+\texttt{0x00} & \texttt{0x02} & \text{Bytes Aleatórios } PS \neq \texttt{0x00} & \texttt{0x00} & \text{Dados da Mensagem } M \\
+\text{(1 byte)} & \text{(1 byte)} & \text{(pelo menos 8 bytes)} & \text{(1 byte)} & \text{(tamanho restante)} \\
+\hline
+\end{array}
+$$
+
+- O primeiro byte `0x00` garante que o número resultante como inteiro seja menor que o módulo $N$.
+- O byte `0x02` indica que o bloco é formatado para cifragem de chave pública.
+- A cadeia de preenchimento $PS$ adiciona aleatoriedade indispensável para garantir que o esquema seja probabilístico.
+- Um bloco cuja decifragem produza exatamente esse formato é chamado de **PKCS-conforme**.
+
+Em um módulo de $k$ bytes ($N \approx 2^{8k}$), a exigência de que o bloco comece com `0x00 0x02` restringe o valor inteiro de $m$ ao intervalo:
+$$
+2B \leq m < 3B, \qquad \text{onde } B = 2^{8(k-2)}
+$$
+
+---
+
+### O Ataque do Milhão de Mensagens (Bleichenbacher 1998)
+
+Daniel Bleichenbacher descobriu que se um servidor de aplicação decifrar um texto cifrado $c$ e retornar códigos de erro distintos dependendo de o padding ser válido ou não (ex: erro `"Bad Padding"` vs erro de processamento interno), o servidor atua como um **Oráculo de Padding**:
+
+$$
+\mathcal{O}(c) = \begin{cases} 
+1 & \text{se } c^d \bmod N \in [2B, 3B-1] \text{ (padding válido)} \\
+0 & \text{caso contrário (padding corrompido)}
+\end{cases}
+$$
+
+**Como o atacante explora esse oráculo:**
+1. O atacante intercepta o cifrado alvo $c = m^e \bmod N$.
+2. Ele escolhe inteiros $s_i$ e calcula cifrados manipulados:
+   $$c_i \equiv c \cdot (s_i)^e \equiv (m \cdot s_i)^e \pmod N$$
+3. Ele envia $c_i$ ao servidor. Se o servidor responder que o padding foi aceito ($\mathcal{O}(c_i) = 1$), o atacante sabe com certeza matemática que:
+   $$2B \leq (m \cdot s_i \bmod N) < 3B$$
+4. Cada resposta afirmativa do servidor elimina vastas faixas numéricas de onde $m$ pode estar localizado. Com um algoritmo inteligente de busca e refinamento de intervalos, o atacante descobre a mensagem inteira $m$ com cerca de algumas centenas de milhares a um milhão de consultas.
+5. Em 2017, este ataque foi redescoberto afetando dezenas de grandes fabricantes de servidores sob o nome de **ROBOT (Return Of Bleichenbacher's Oracle Threat)**.
+
+---
+
+## 5.6 RSA-OAEP (Optimal Asymmetric Encryption Padding)
+
+Para sanar de forma definitiva as falhas do PKCS #1 v1.5, Mihir Bellare e Phillip Rogaway propuseram o **OAEP**, padronizado no PKCS #1 v2.0 e utilizado obrigatoriamente em todos os padrões modernos.
+
+### A Estrutura de Feistel de 2 Rodadas
+
+O OAEP combina a mensagem $M$ com uma semente verdadeiramente aleatória $r$ através de duas funções de geração de máscara ($MGF_1$) baseadas em funções de hash criptográficas (como SHA-256):
+
+```
+                      +-------------------+
+                      | Semente Aleatória |
+                      |       r           |
+                      +---------+---------+
+                                |
+                   +------------+------------+
+                   |                         |
+                   v                         |
+               +-------+                     |
+               |  MGF  |                     |
+               +---+---+                     |
+                   |                         |
+                   v                         v
+Mensagem: DB = (M || 00...00) ----(+)----> maskedDB ----> [ Bloco Final ]
+                                    ^        |           |  maskedDB   |
+                                    |        v           |     ||      |
+                                    |    +-------+       |  maskedSeed |
+                                    |    |  MGF  |       +-------------+
+                                    |    +---+---+
+                                    |        |
+                                    +-------(+) <--- r
+```
+
+1. **Criação do Bloco de Dados:** Concatena-se a mensagem com bytes fixos de verificação: $DB = M \parallel 00\dots00$.
+2. **Primeira Máscara:** Gera-se uma semente criptográfica aleatória $r$. Aplica-se a função de máscara $MGF(r)$ e faz-se o XOR com o bloco de dados:
+   $$\mathrm{maskedDB} = DB \oplus MGF(r)$$
+3. **Segunda Máscara:** Aplica-se a função de máscara sobre $\mathrm{maskedDB}$ e mascara-se a semente:
+   $$\mathrm{maskedSeed} = r \oplus MGF(\mathrm{maskedDB})$$
+4. **Bloco Cifrado com RSA:** O texto claro formatado é a concatenação $\mathrm{EM} = \mathrm{maskedDB} \parallel \mathrm{maskedSeed}$, que é então elevado a $e \pmod N$.
+
+### Por que o OAEP é Inviolável contra CCA?
+
+- **Efeito Avalanche Total:** Qualquer modificação de um único bit no texto cifrado se propaga caoticamente por todo o bloco durante as etapas de desmascaramento.
+- **Falha com Probabilidade Praticamente 1:** Se o bloco for adulterado, os bytes de verificação $00\dots00$ finais **não** serão recuperados, e a decifragem rejeita o pacote instantaneamente.
+- **Segurança Provada:** Bellare e Rogaway provaram que o RSA-OAEP é **IND-CCA2 seguro** no Modelo de Oráculo Aleatório (ROM).
+- **Implementação em Tempo Constante:** A rejeição de blocos inválidos é calculada sem desvios de código ou mensagens de erro reveladoras, erradicando canais laterais (timing attacks).
+
+---
 
 ---
 
 # 6. Assinaturas Digitais
 
-## 6.1 Sintaxe e segurança
+## 6.1 Sintaxe e Segurança Formal
 
-**Camada 1 — Visão Geral:** `Gen`, `Sign(sk,m)→σ`, `Verify(pk,m,σ)→0/1`. **Assina com privada, verifica com pública.**
+**Camada 1 — Visão Geral:** Uma assinatura digital é o equivalente criptográfico da assinatura manuscrita em papel, porém matematicamente infalsificável. É definida por uma tupla de três algoritmos $(\mathrm{Gen}, \mathrm{Sign}, \mathrm{Verify})$:
 
-- **EUF-CMA:** mesmo vendo assinaturas escolhidas, não forja nova.
-- Dá **autenticidade, integridade, não-repúdio** (MAC não dá a terceira).
+1. **$\mathrm{Gen}(1^\lambda) \to (\mathrm{pk}, \mathrm{sk})$:** Gera o par de chaves. A chave privada $\mathrm{sk}$ é usada exclusivamente pelo autor para assinar; a chave pública $\mathrm{pk}$ é disponibilizada a todos para verificar.
+2. **$\mathrm{Sign}(\mathrm{sk}, m) \to \sigma$:** Recebe a chave privada $\mathrm{sk}$ e a mensagem $m$, gerando a assinatura digital $\sigma$.
+3. **$\mathrm{Verify}(\mathrm{pk}, m, \sigma) \to \{0, 1\}$:** Algoritmo determinístico que recebe a chave pública $\mathrm{pk}$, a mensagem $m$ e a assinatura $\sigma$. Retorna $1$ se a assinatura for autêntica e válida, ou $0$ caso contrário.
 
-## 6.2 Hash-and-sign
+**Corretude:** Para todo $(\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{Gen}(1^\lambda)$ e toda mensagem $m$:
+$$
+\mathrm{Verify}(\mathrm{pk}, m, \mathrm{Sign}(\mathrm{sk}, m)) = 1
+$$
 
-**Camada 1 — Visão Geral:** Assina `σ=Sign(sk, H(m))` — mais rápido.
+---
 
-**Camada 3 — Validação:** Precisa `H` **resistente a colisão**: se `H(m)=H(m')`, uma assinatura vale pra duas → adeus MD5/SHA-1 (Flame, SHAttered). Use SHA-256+.
+### O Experimento EUF-CMA (Existential Unforgeability under Chosen-Message Attack)
+
+O padrão universal de segurança para assinaturas digitais exige que nenhum adversário seja capaz de forjar uma assinatura válida para **nenhuma mensagem nova**, mesmo tendo a capacidade de solicitar assinaturas para mensagens de sua própria escolha:
+
+$$
+\begin{array}{ccc}
+\textbf{Adversário } \mathcal{A} & & \textbf{Desafiador} \\[4pt]
+& \xleftarrow{\quad\quad \mathrm{pk} \quad\quad} & (\mathrm{pk}, \mathrm{sk}) \leftarrow \mathrm{Gen}(1^\lambda) \\[4pt]
+\text{Solicita assinatura de } m_1 & \xrightarrow{\quad\quad m_1 \quad\quad} & \\
+& \xleftarrow{\quad\quad \sigma_1 \quad\quad} & \sigma_1 \leftarrow \mathrm{Sign}(\mathrm{sk}, m_1) \\
+\vdots & & \vdots \\
+\text{Solicita assinatura de } m_q & \xrightarrow{\quad\quad m_q \quad\quad} & \\
+& \xleftarrow{\quad\quad \sigma_q \quad\quad} & \sigma_q \leftarrow \mathrm{Sign}(\mathrm{sk}, m_q) \\[8pt]
+\text{Emite forja final } (m^*, \sigma^*) & & \mathcal{A} \text{ vence se } \mathrm{Verify}(\mathrm{pk}, m^*, \sigma^*) = 1 \\
+& & \textbf{e } m^* \notin \{m_1, \dots, m_q\}
+\end{array}
+$$
+
+**Definição:** Um esquema é **EUF-CMA seguro** se a probabilidade de vitória de qualquer adversário PPT for desprezível ($\Pr[\mathcal{A} \text{ vence}] \leq \mathrm{negl}(\lambda)$).
+
+---
+
+### A Diferença Crucial: MAC (Simétrico) vs. Assinatura Digital (Assimétrica)
+
+| Propriedade | MAC (ex: HMAC-SHA256) | Assinatura Digital (ex: ECDSA, Ed25519) |
+|---|---|---|
+| **Chaves:** | Simétrica: 1 única chave secreta $k$ compartilhada | Assimétrica: par $(\mathrm{pk}, \mathrm{sk})$ |
+| **Quem cria a tag/assinatura:** | Qualquer um que saiba $k$ (Alice ou Bob) | Exclusivamente o dono da chave privada $\mathrm{sk}$ |
+| **Quem verifica:** | Apenas quem sabe $k$ | Qualquer pessoa no mundo que tenha a chave pública $\mathrm{pk}$ |
+| **Autenticidade e Integridade:** | Sim | Sim |
+| **Não-Repúdio (Procuração Legal / Juiz):** | **NÃO.** Como Bob conhece $k$, ele poderia ter forjado o MAC e acusado Alice. | **SIM.** Apenas Alice possui $\mathrm{sk}$; Bob pode apresentar a mensagem assinada a um juiz imparcial. |
+
+---
+
+## 6.2 O Paradigma Hash-and-Sign
+
+Na prática, nunca se assina a mensagem $m$ diretamente, pois operações de chave pública são computacionalmente custosas para dados grandes e introduzem vulnerabilidades estruturais. O padrão universal é **Hash-and-Sign**:
+
+$$
+\sigma = \mathrm{Sign}(\mathrm{sk}, H(m))
+$$
+
+onde $H: \{0,1\}^* \to \{0,1\}^n$ é uma função de hash criptográfica segura (como SHA-256 ou SHA-3).
+
+### Por que a Resistência à Colisão é Estritamente Obrigatória?
+
+Para funções de hash, existem três propriedades de segurança:
+1. **Resistência à Pré-imagem:** Dado $y$, é difícil achar $m$ tal que $H(m) = y$.
+2. **Resistência à Segunda Pré-imagem:** Dado $m_1$, é difícil achar $m_2 \neq m_1$ com $H(m_1) = H(m_2)$.
+3. **Resistência à Colisão:** É computacionalmente inviável encontrar **qualquer** par arbitrário $m_1 \neq m_2$ tal que $H(m_1) = H(m_2)$.
+
+> **Ataque do Aniversário contra Hash-and-Sign:**
+> Se uma função hash não for resistente à colisão, um adversário (Eve) pode quebrar o sistema facilmente:
+> 1. Eve encontra computacionalmente dois documentos diferentes $m_1$ e $m_2$ com o mesmo hash:
+>    $$H(m_1) = H(m_2)$$
+>    - $m_1$ é um contrato legítimo inofensivo: *"Declaro que recebi R$ 10,00 de Eve"*.
+>    - $m_2$ é um contrato fraudulento devastador: *"Transfiro todos os meus bens para Eve"*.
+> 2. Eve apresenta $m_1$ a Alice e solicita que ela assine digitalmente.
+> 3. Alice assina o hash de $m_1$:
+>    $$\sigma = \mathrm{Sign}(\mathrm{sk}_A, H(m_1))$$
+> 4. Como $H(m_1) = H(m_2)$, a assinatura $\sigma$ produzida por Alice é **identicamente válida para o contrato $m_2$**:
+>    $$\mathrm{Verify}(\mathrm{pk}_A, m_2, \sigma) = 1$$
+> 5. Eve anexa $\sigma$ ao contrato fraudulento $m_2$ e executa a cobrança legal!
+>
+> **Casos Reais Históricos:**
+> - **MD5:** Em 2008, pesquisadores criaram uma Autoridade Certificadora falsa devido a colisões no MD5. Em 2012, o malware de ciberguerra **Flame** usou colisões MD5 para forjar assinaturas da Microsoft no Windows Update.
+> - **SHA-1:** Quebrado pelo ataque SHAttered em 2017 pelo CWI e Google.
+> **Regra de Produção:** Utilize exclusivamente **SHA-256, SHA-384, SHA-512 ou SHA-3**.
+
+---
 
 ## 6.3 Assinaturas RSA
 
-**Camada 1 — Visão Geral:**
-- **Cru:** `σ=m^d` → quebrado (forja trivial, multiplicativo).
-- **FDH:** `σ=H(m)^d` → EUF-CMA no ROM.
-- **v1.5:** `EM=0x00||0x01||FF..||00||DigestInfo||H(m)` → onipresente, mas verificadores relaxados sofrem Bleichenbacher `e=3` (raiz cúbica).
+### O Esquema RSA Cru ("Textbook") e suas Falhas Fatais
 
-**Camada 4 — Resumo:** Hoje: **Ed25519** ou **ECDSA P-256**; RSA-PSS se precisar RSA.
+No RSA cru, assinar é exponenciar com a chave privada $d$, e verificar é exponenciar com a pública $e$:
+$$
+\sigma \equiv m^d \pmod N \qquad \implies \qquad \text{Verificação: } \sigma^e \equiv (m^d)^e \equiv m \pmod N
+$$
 
-## 6.4 DSA e ECDSA
+**Vulnerabilidade 1 — Forja Existencial Trivial (sem conhecer $d$):**
+O atacante escolhe qualquer valor numérico arbitrário $\sigma \in \mathbb{Z}_N^*$.
+Ele calcula a "mensagem" correspondente usando a chave pública:
+$$m \equiv \sigma^e \pmod N$$
+O par $(m, \sigma)$ é imediatamente aceito por qualquer verificador como uma assinatura autêntica, sem que o atacante saiba a chave privada!
 
-**Camada 1 — Visão Geral:** Trabalham em subgrupo ordem prima `q`. Assinatura = `(r,s)`.
+**Vulnerabilidade 2 — Homomorfismo Multiplicativo:**
+Se o atacante obtiver assinaturas legítimas de Alice para duas mensagens distintas $m_1$ e $m_2$:
+$$\sigma_1 \equiv m_1^d \pmod N, \qquad \sigma_2 \equiv m_2^d \pmod N$$
+Ele pode forjar a assinatura para a mensagem composta $m^* = m_1 \cdot m_2 \pmod N$ multiplicando as duas assinaturas:
+$$\sigma^* \equiv \sigma_1 \cdot \sigma_2 \equiv m_1^d \cdot m_2^d \equiv (m_1 \cdot m_2)^d \pmod N$$
 
-**ECDSA — assinar `m` com privada `d`, gerador `G` ordem `n`:**
-1. `e=H(m)`, 2. sorteia `k∈[1,n-1]`, 3. `R=kG`, `r=R.x mod n`, 4. `s=k⁻¹(e+r·d) mod n`, 5. `(r,s)` → Verificar: `u₁=e·s⁻¹`, `u₂=r·s⁻¹`, `P=u₁G+u₂Q`, válido se `P.x≡r`.
+### A Solução Moderna: RSA-PSS (Probabilistic Signature Scheme)
 
-**Camada 2 — Analogia (A parte mortal):** `k` é como o **papel carbono** — se reutilizar, a mensagem secreta vaza.
-
-**Camada 3 — Validação (desastre real):** `k` repetido → `s₁−s₂=k⁻¹(e₁−e₂)` → `k=(e₁−e₂)/(s₁−s₂)`, `d=(s₁k−e₁)/r` → **PS3 (2010)** e carteiras Bitcoin Android (2013) quebrados. `k` enviesado → lattice attack.
-
-**Camada 4 — Resumo:** **Conserto:** RFC 6979 (`k` determinístico via HMAC) ou **Ed25519** (já determinístico). ECDSA é maleável `(r,−s)` → exige `s` low (Bitcoin).
-
-## 6.5 Certificados e PKI
-
-**Camada 1 — Visão Geral:** Como sei que `pk` é da Alice? **Certificado** = declaração assinada por CA.
-
-```
-Raiz (auto-assinada, no SO)
- └── CA intermediária
-       └── certificado do site
-```
-
-**Camada 3 — Validação:** Conteúdo X.509, revogação (CRL, OCSP, stapling, validade curta 90d), fraqueza DigiNotar 2011 → Certificate Transparency.
-
-**Camada 4 — Resumo:** Cadeia de confiança — só confia em poucas raízes.
+Padronizado no PKCS #1 v2.1 (RFC 8017), o **RSA-PSS** elimina completamente a maleabilidade:
+1. Adiciona um valor aleatório (*salt*) à mensagem antes do hash.
+2. Aplica funções de geração de máscara baseadas em Feistel ($MGF$).
+3. É **provadamente EUF-CMA seguro** no Modelo de Oráculo Aleatório (ROM).
 
 ---
 
-# 7. Curvas Elípticas (V8)
+## 6.4 DSA e ECDSA (Do Zero, Passo a Passo)
 
-## 7.1 O que é
+O algoritmo **DSA (Digital Signature Algorithm)** e sua versão moderna em curvas elípticas, **ECDSA (Elliptic Curve DSA)**, baseiam-se na dificuldade do logaritmo discreto.
 
-**Camada 1 — Visão Geral:** Sobre `F_p`, `y²=x³+ax+b (mod p)`, `4a³+27b²≠0`. Pontos `(x,y)` + `O` formam **grupo**.
-
-## 7.2 A lei de grupo
-
-**Camada 1 — Visão Geral:**
-- Identidade `O`, inverso `−P=(x,−y)`, `P+Q` = reta por `P,Q` corta curva em terceiro ponto, reflete no eixo x, `P+P` = tangente.
-
-**Camada 2 — Analogia:** É como jogar bilhar numa mesa curva — a bola quica e volta.
-
-**Camada 3 — Validação (fórmulas):** `P≠Q: λ=(y₂−y₁)/(x₂−x₁)`, `P=Q: λ=(3x₁²+a)/(2y₁)`, `x₃=λ²−x₁−x₂`, `y₃=λ(x₁−x₃)−y₁` (divisão = inverso mod p). `kP` = double-and-add.
-
-**Camada 4 — Resumo:** Dicionário: `g^x ⟷ xP`. Mesmo grupo abstrato.
-
-## 7.3 ECDLP
-
-**Camada 1 — Visão Geral:** Dado `Q=kP`, achar `k` é fácil calcular, inviável voltar. **Sem index calculus** → só `O(√n)` (Pollard rho).
-
-**Camada 4 — Resumo:** 256 bits curva ≈128 bits segurança ≈ RSA 3072 → chaves menores, mais rápido. Evitar ordens com fatores pequenos, curvas anômalas/supersingulares → use P-256, secp256k1, Curve25519.
-
-## 7.4 Parâmetros de domínio
-
-`(p,a,b,G,n,h)` — corpo, coeficientes, gerador, ordem prima `n`, cofator `h=#E/n`. `d∈[1,n-1]`, `Q=dG`.
-
-## 7.5 ECDH
-
-**Camada 1 — Visão Geral:** Idêntico ao DH com escalares:
-```
-Alice: d_A, Q_A=d_A·G ──Q_A──▶
-                          ◀─Q_B──  Bob: d_B, Q_B=d_B·G
-segredo=d_A·Q_B = d_A·d_B·G
-```
-
-**Camada 3 — Validação:** Usa só `x` + KDF. **ECDHE** (efêmero) → **forward secrecy** (TLS 1.3, X25519).
-
-## 7.6 ECDSA
-
-Já em §6.4. **Regra de ouro:** `k` único ou chave vaza.
+### Parâmetros Globais do ECDSA
+- Uma curva elíptica $E(\mathbb{F}_p)$ definida sobre um corpo finito $\mathbb{F}_p$.
+- Um ponto base gerador $G \in E(\mathbb{F}_p)$ com ordem prima $n$ grande (isto é, $n \cdot G = \mathcal{O}$).
+- **Chave Privada:** Um número inteiro secreto $d \xleftarrow{R} \{1, \dots, n-1\}$.
+- **Chave Pública:** O ponto correspondente na curva:
+  $$Q = d \cdot G$$
 
 ---
 
-# 8. Aprofundamentos (contas na mão)
+### Algoritmo de Assinatura ECDSA
 
-> Cada aprofundamento segue o mesmo Scaffolding — agora é você fazendo a conta.
+Para assinar uma mensagem $m$ com a chave privada $d$:
 
-## 8.1 Teorema Chinês do Resto — exemplo completo
-
-**Camada 1 — Visão Geral:** Achar `x` com `x≡2(3), x≡3(5), x≡2(7)`. `N=105`.
-
-| i | `n_i` | `a_i` | `N_i=N/n_i` | `y_i=N_i⁻¹ mod n_i` | `a_i·N_i·y_i` |
-|---|---|---|---|---|---|
-|1|3|2|35|`35≡2→2⁻¹=2`|`2·35·2=140`|
-|2|5|3|21|`21≡1→1`|`3·21·1=63`|
-|3|7|2|15|`15≡1→1`|`2·15·1=30`|
-
-**Camada 3 — Validação:** `x=233≡23`, confere `23=3·7+2` ✓ etc.
-
-**Camada 2/4 — Analogia e Resumo Estrutural:** Cada termo "acende" só sua congruência (base canônica, vetor unitário). `Z_105 ≅ Z_3×Z_5×Z_7`.
-
-## 8.2 RSA-CRT — como a decifragem fica 4× mais rápida
-
-**Camada 1 — Visão Geral:** Custo cúbico → duas contas 1024 bits custam `2·(1/2)³=1/4`.
-
-**Pré-computado:** `d_p=d mod(p-1)`, `d_q=d mod(q-1)`, `q_inv=q⁻¹ mod p`.
-
-**Camada 3 — Validação (`p=3,q=11,N=33,e=3,d=7,c=31`):**
-```
-d_p=1, d_q=7, q_inv=2
-m₁=31¹ mod3=1, m₂=9⁷ mod11=4, h=2·(1−4)≡0, m=4+0·11=4 ✓
-```
-
-**Camada 4 — Alerta (Bellcore):** Um erro em `m₁` → `gcd(σ'^e−m,N)=q` → **verifique `σ^e≟m` antes de devolver**.
-
-## 8.3 Soma de pontos em curva elíptica — contas de verdade
-
-**Curva `E: y²=x³+2x+2` sobre `F₁₇`, `P=(5,1)`** (confere: `137≡1`, `1²=1` ✓)
-
-**Camada 3 — Validação:**
-- **Dobrar `2P` (tangente):** `λ=(3·25+2)/(2)=77/2≡9·9=13`, `x₃=169−10≡6`, `y₃=13·(5−6)−1≡3` → `2P=(6,3)` ✓
-- **Somar `3P=2P+P` (secante):** `λ=(3−1)/(6−5)=2`, `x₃=4−5−6≡10`, `y₃=2·(5−10)−1≡6` → `(10,6)` ✓ → grupo tem 19 pontos (ordem prima).
-
-**Camada 4 — Resumo:** Toda divisão virou inverso modular (caro → coordenadas projetivas). `P+(−P)=O` (vertical). Double-and-add vaza por timing → Montgomery ladder.
-
-## 8.4 Baby-step Giant-step (BSGS)
-
-**Camada 1 — Visão Geral:** Resolver `g^x=h` sem força bruta. Truque: `x=i·m+j`, `m=⌈√n⌉`, `g^j = h·(g^(−m))^i`.
-
-**Camada 3 — Validação (`5^x≡7 mod23, n=22,m=5`):**
-Baby steps `5^j`: 1,5,2,10,4; `c=20⁻¹≡15`; Giant steps: `7→13→11→4` (achou `j=4` em `i=3`) → `x=3·5+4=19` ✓.
-Custo `O(√n)` tempo **e** memória → `2¹²⁸` para 256 bits → inviável.
-
-**Camada 4 — Resumo:** Raise de baseline — grupos <2¹⁶⁰ são quebráveis.
-
-## 8.5 Pollard rho
-
-**Camada 1 — Visão Geral:** Mesmo tempo `O(√n)` mas **memória O(1)** — ataque prático contra ECDLP.
-
-**Camada 2 — Analogia (Aniversário):** Passeio pseudoaleatório `g^a·h^b` particionado em 3 regiões; após `~1.25√n` entra em ciclo (formato ρ).
-
-**Camada 3 — Validação:** Detecção Floyd (2 ponteiros), extração `a₁+xb₁≡a₂+xb₂` → `x=(a₁−a₂)/(b₂−b₁)`.
-
-**Camada 4 — Resumo:** Paralelizável (Van Oorschot–Wiener), melhor ataque contra ECDLP → `n` bits ⇒ `n/2` segurança → `256→128`.
+1. Calcula-se o hash da mensagem: $e = H(m)$ (trunca-se $e$ para o tamanho em bits de $n$).
+2. Sorteia-se um **nonce efêmero estritamente secreto e uniforme**:
+   $$k \xleftarrow{R} \{1, \dots, n-1\}$$
+3. Calcula-se o ponto resultante da multiplicação escalar na curva:
+   $$R = k \cdot G = (x_R, y_R)$$
+4. A primeira coordenada da assinatura é a abscissa do ponto reduzida no módulo da ordem do grupo:
+   $$r \equiv x_R \pmod n$$
+   *(Se $r = 0$, volta-se ao passo 2 e sorteia-se um novo $k$)*.
+5. A segunda coordenada da assinatura é calculada como:
+   $$s \equiv k^{-1} (e + r \cdot d) \pmod n$$
+   *(Se $s = 0$, volta-se ao passo 2 e sorteia-se um novo $k$)*.
+6. A assinatura digital final é o par de números inteiros:
+   $$\sigma = (r, s)$$
 
 ---
 
-# 9. Exercícios (com respostas)
+### Algoritmo de Verificação ECDSA
 
-Faça no papel antes de olhar. Respostas logo abaixo de cada bloco.
+Para verificar a assinatura $(r, s)$ da mensagem $m$ usando a chave pública $Q$:
 
-## Bloco A — números e grupos
+1. Valida-se se $r$ e $s$ são inteiros no intervalo válido: $1 \leq r, s \leq n-1$.
+2. Calcula-se o hash $e = H(m)$.
+3. Calcula-se o inverso multiplicativo de $s$ módulo $n$:
+   $$w \equiv s^{-1} \pmod n$$
+4. Calculam-se os coeficientes escalares:
+   $$u_1 \equiv e \cdot w \pmod n, \qquad u_2 \equiv r \cdot w \pmod n$$
+5. Computa-se a combinação linear de pontos na curva elíptica:
+   $$P = u_1 \cdot G + u_2 \cdot Q$$
+6. A assinatura é **válida** se e somente se $P \neq \mathcal{O}$ e sua coordenada $x$ coincidir com $r$:
+   $$x_P \equiv r \pmod n$$
 
-1. Calcule `gcd(1071, 462)` por Euclides.
-2. Ache `17⁻¹ mod 43` (Euclides estendido).
-3. Quanto vale `φ(100)`? E `φ(143)`?
-4. Calcule `7^222 mod 11` usando Fermat.
-5. `Z*₁₅` tem quantos elementos? Liste-os. É cíclico?
-6. Em `Z*₁₁`, qual a ordem do elemento `3`? Ele é gerador?
+---
 
-<details><summary><b>Respostas A</b></summary>
+### Demonstração Algébrica Formal da Corretude
 
-1. `1071=2·462+147`; `462=3·147+21`; `147=7·21+0` → **21**.
-2. `43=2·17+9`; `17=1·9+8`; `9=1·8+1`. Voltando → `−5·17≡1` → **`17⁻¹=38`**.
-3. `100=2²·5²→40`, `143=11·13→120`.
-4. `φ(11)=10`, `222 mod10=2` → `49≡5`.
-5. `φ(15)=8`: `{1,2,4,7,8,11,13,14}`. **Não cíclico** — ordem ≤4 (`Z*₁₅≅Z₂×Z₄`).
-6. `3¹=3,3²=9,3³=5,3⁴=4,3⁵=1` → **ordem 5** ≠10 → **não é gerador**.
+Por que o ponto $P$ coincide exatamente com o ponto efêmero $R = k \cdot G$?
+
+Substituindo $Q = d \cdot G$ na equação do ponto verificador $P$:
+$$
+\begin{aligned}
+P &= u_1 \cdot G + u_2 \cdot Q \\
+&= (e \cdot w) \cdot G + (r \cdot w) \cdot (d \cdot G) \\
+&= (e \cdot w + r \cdot w \cdot d) \cdot G \\
+&= w(e + r \cdot d) \cdot G
+\end{aligned}
+$$
+Lembrando que $w \equiv s^{-1} \pmod n$:
+$$
+w(e + r \cdot d) \equiv s^{-1}(e + r \cdot d) \pmod n
+$$
+Da definição de $s$ na assinatura:
+$$
+s \equiv k^{-1}(e + r \cdot d) \pmod n \implies s^{-1} \equiv \left[k^{-1}(e + r \cdot d)\right]^{-1} \equiv k \cdot (e + r \cdot d)^{-1} \pmod n
+$$
+Multiplicando por $(e + r \cdot d)$:
+$$
+s^{-1}(e + r \cdot d) \equiv k \cdot (e + r \cdot d)^{-1} \cdot (e + r \cdot d) \equiv k \pmod n
+$$
+Substituindo de volta na expressão do ponto $P$:
+$$
+P = k \cdot G = R
+$$
+Portanto, a coordenada $x$ do ponto calculado $P$ é exatamente $x_R$, que por construção é $r \pmod n$. A verificação aceita com 100% de consistência algébrica!
+
+---
+
+### O Desastre Mortal: Reutilização do Nonce $k$
+
+O nonce $k$ é chamado de **número usado uma única vez (nonce)** por um motivo vital. Se o mesmo valor de $k$ for reutilizado para assinar duas mensagens diferentes $m_1$ e $m_2$ com a mesma chave privada $d$:
+
+Como $R = k \cdot G$, a coordenada $r$ será **idêntica** em ambas as assinaturas:
+- Assinatura 1: $(r, s_1)$ para a mensagem $m_1$, com hash $e_1 = H(m_1)$
+- Assinatura 2: $(r, s_2)$ para a mensagem $m_2$, com hash $e_2 = H(m_2)$
+
+As duas equações de assinatura módulo $n$ são:
+$$
+s_1 \equiv k^{-1}(e_1 + r \cdot d) \pmod n
+$$
+$$
+s_2 \equiv k^{-1}(e_2 + r \cdot d) \pmod n
+$$
+Subtraindo a segunda equação da primeira:
+$$
+s_1 - s_2 \equiv k^{-1}(e_1 - e_2) \pmod n
+$$
+Como $e_1 \not\equiv e_2$, o atacante calcula o inverso multiplicativo de $(s_1 - s_2)$ e **descobre o valor secreto de $k$**:
+$$
+k \equiv (e_1 - e_2) \cdot (s_1 - s_2)^{-1} \pmod n
+$$
+Uma vez que $k$ é conhecido publicamente pelo invasor, ele isola a chave privada mestra $d$ da primeira equação:
+$$
+s_1 \cdot k \equiv e_1 + r \cdot d \pmod n \implies r \cdot d \equiv s_1 \cdot k - e_1 \pmod n
+$$
+Multiplicando pelo inverso modular de $r$:
+$$
+d \equiv (s_1 \cdot k - e_1) \cdot r^{-1} \pmod n
+$$
+**A chave privada $d$ foi totalmente recuperada e o sistema foi destruído.**
+
+> **Incidentes Reais da História:**
+> 1. **Sony PlayStation 3 (2010):** A Sony implementou o ECDSA em seu bootloader gerando um $k$ estático (fixo). O grupo hacker *fail0verflow* isolou a chave privada mestra da Sony em minutos, permitindo a execução de qualquer software no console.
+> 2. **Bitcoin Android Wallet (2013):** Uma falha no gerador pseudoaleatório `SecureRandom` do Java no Android gerou colisões de $k$ em transações Bitcoin, permitindo o roubo automatizado de fundos.
+>
+> **Solução Moderna Definitiva:**
+> - **RFC 6979:** Gera o nonce $k$ de forma **determinística**, derivando $k = \mathrm{HMAC}(\mathrm{sk}, H(m))$. Para a mesma mensagem o $k$ é idêntico (o que não quebra nada), e para mensagens diferentes é impossível colidir.
+> - **Ed25519 (EdDSA):** Algoritmo moderno sobre a Curve25519 que é determinístico por especificação nativa, imune a erros de gerador de números aleatórios e imune a ataques de canal lateral.
+
+---
+
+## 6.5 Certificados Digitais e Infraestrutura de Chaves Públicas (PKI)
+
+**Camada 1 — Visão Geral:** Se Alice publicar uma chave pública $\mathrm{pk}_A$, como Bob tem certeza de que aquela chave pertence a Alice e não a Mallory?
+A resposta é a **PKI (Public Key Infrastructure)** baseada em **Certificados Digitais X.509**.
+
+```
++--------------------------------------------------------------------+
+| CADEIA DE CERTIFICAÇÃO (CHAIN OF TRUST)                            |
+|                                                                    |
+|  [ Raiz de Confiança (Root CA) ]                                   |
+|   Autoassinada; pré-instalada no Windows, Linux, Android, iOS.     |
+|   Assina o certificado da CA Intermediária com sua sk_root.        |
+|             |                                                      |
+|             v                                                      |
+|  [ Autoridade Certificadora Intermediária (Intermediate CA) ]      |
+|   Emitida por Let's Encrypt, DigiCert, etc.                        |
+|   Assina o certificado final do site com sua sk_interm.            |
+|             |                                                      |
+|             v                                                      |
+|  [ Certificado Final do Servidor (ex: google.com) ]                |
+|   Contém a chave pública pk_google e a assinatura da Intermediária |
++--------------------------------------------------------------------+
+```
+
+### O Conteúdo de um Certificado X.509
+Um certificado digital é uma estrutura padronizada contendo:
+- **Sujeito (Subject):** O nome do domínio/proprietário (ex: `CN = api.banco.com`).
+- **Chave Pública do Sujeito:** A chave $\mathrm{pk}$ pública real daquele domínio.
+- **Emissor (Issuer):** A Autoridade Certificadora que emitiu e atestou o documento.
+- **Validade:** Data inicial e data final de expiração (hoje tipicamente 90 dias).
+- **Assinatura Digital da CA:** $\sigma_{\mathrm{CA}} = \mathrm{Sign}(\mathrm{sk}_{\mathrm{CA}}, H(\text{dados do certificado}))$.
+
+### Revogação e Segurança Operacional
+- **CRL (Certificate Revocation List):** Lista estática de certificados cancelados; pesada e ineficiente.
+- **OCSP (Online Certificate Status Protocol):** Consulta em tempo real aos servidores da CA sobre o status do certificado.
+- **OCSP Stapling:** O próprio servidor web consulta a CA periodicamente e envia uma prova com carimbo de tempo ao navegador, preservando a privacidade do usuário e eliminando lentidão.
+- **Certificate Transparency (CT Logs):** Logs públicos imutáveis baseados em Árvores de Merkle onde todos os certificados TLS emitidos no mundo devem ser registrados obrigatoriamente, impedindo que CAs emitam certificados fraudulentos secretamente.
+
+---
+
+---
+
+# 7. Curvas Elípticas (Vídeo V8)
+
+## 7.1 O que é uma Curva Elíptica?
+
+**Camada 1 — Visão Geral:** Uma curva elíptica não é uma elipse. O nome tem origem histórica no cálculo do comprimento de arco de elipses (integrais elípticas). Em criptografia, uma curva elíptica é o conjunto de soluções de uma equação cúbica suave de duas variáveis.
+
+### A Equação de Weierstrass
+
+Na forma afim simplificada (válida para corpos com característica diferente de 2 e 3), a curva elíptica é definida pela equação:
+
+$$
+y^2 = x^3 + a x + b
+$$
+
+onde $a$ e $b$ são constantes que definem a curva.
+
+### A Condição do Discriminante (Sem Singularidades)
+
+Para que a curva seja utilizável em criptografia, ela precisa ser **suave**, isto é, não pode conter pontos de singularidade (auto-intersecções com nós ou cúspides pontiagudas onde a derivada não existe). A condição necessária e suficiente é que o discriminante seja não-nulo:
+
+$$
+\Delta = -16(4a^3 + 27b^2) \neq 0 \iff 4a^3 + 27b^2 \neq 0
+$$
+
+Se $\Delta = 0$, a curva elíptica degenera e não é possível definir uma lei de grupo consistente sobre todos os seus pontos.
+
+---
+
+### O Ponto no Infinito $\mathcal{O}$ e o Espaço Projetivo
+
+No plano cartesiano afim $\mathbb{R}^2$, qualquer reta vertical paralela ao eixo $y$ cruza a curva em no máximo dois pontos simétricos $(x, y)$ e $(x, -y)$, nunca num terceiro ponto afim.
+
+Para completar a geometria, introduz-se formalmente o **Ponto no Infinito**, denotado por $\mathcal{O}$.
+- No plano projetivo $\mathbb{P}^2$, as coordenadas homogêneas são $(X : Y : Z)$, e a equação se torna:
+  $$Y^2 Z = X^3 + a X Z^2 + b Z^3$$
+- Ao fazer $Z = 0$ (a reta no infinito), a equação fica $X^3 = 0 \implies X = 0$, restando apenas o ponto $(0 : 1 : 0)$, que é exatamente $\mathcal{O}$.
+- Todas as retas verticais são paralelas no plano afim, mas no plano projetivo elas convergem e se interceptam no ponto $\mathcal{O}$.
+- **Papel no Grupo:** $\mathcal{O}$ atua como o **Elemento Neutro Aditivo** do grupo da curva elíptica:
+  $$P + \mathcal{O} = P, \qquad \forall P \in E$$
+
+### O Inverso de um Ponto: Simetria no Eixo $x$
+
+Como a equação da curva possui apenas potências pares de $y$ ($y^2$), se $(x, y)$ pertence à curva, então $(x, -y)$ também pertence à curva. O inverso aditivo de um ponto $P = (x, y)$ é definido pela sua reflexão vertical:
+
+$$
+-P = (x, -y)
+$$
+
+A reta que une $P = (x, y)$ e $-P = (x, -y)$ é perfeitamente vertical e intercepta a curva no infinito $\mathcal{O}$. Logo:
+$$
+P + (-P) = \mathcal{O}
+$$
+
+---
+
+## 7.2 A Lei de Grupo Geométrica ("Chord-and-Tangent")
+
+Os pontos de uma curva elíptica juntamente com $\mathcal{O}$ formam um **Grupo Abeliano** sob uma operação de adição geométrica denominada método da secante e tangente (*chord-and-tangent rule*).
+
+### Regra Fundamental da Adição
+
+> **Axioma Geométrico:** Se três pontos da curva elíptica são **colineares** (estão na mesma linha reta), a soma de suas coordenadas no grupo resulta no elemento neutro $\mathcal{O}$:
+> $$P + Q + (-R) = \mathcal{O} \implies P + Q = R$$
+
+Para somar dois pontos distintos $P$ e $Q$:
+1. Traça-se a reta secante passando por $P$ e $Q$.
+2. Devido ao Teorema de Bézout, uma linha reta intercepta uma curva cúbica em exatamente **3 pontos** (contando multiplicidades). A reta cortará a curva num terceiro ponto, denotado por $-R = (x_3, -y_3)$.
+3. Reflete-se esse terceiro ponto verticalmente sobre o eixo $x$ para obter a soma:
+   $$R = P + Q = (x_3, y_3)$$
+
+---
+
+### Ilustração Geométrica da Adição em Curvas Elípticas
+
+\begin{center}
+\begin{tikzpicture}[scale=0.95]
+  % Eixos cartesianos
+  \draw[->, thick, gray!70] (-3.2,0) -- (4.2,0) node[right, black] {$x$};
+  \draw[->, thick, gray!70] (0,-3.4) -- (0,3.4) node[above, black] {$y$};
+  
+  % Curva eliptica continua y^2 = x^3 - 3x + 3
+  \draw[very thick, blue!75!black] 
+    plot[domain=-2.1:2.65, samples=120] (\x, {sqrt(\x^3 - 3*\x + 3)});
+  \draw[very thick, blue!75!black] 
+    plot[domain=-2.1:2.65, samples=120] (\x, {-sqrt(\x^3 - 3*\x + 3)});
+  \node[blue!75!black, above right] at (1.4, 2.7) {$E: y^2 = x^3 + ax + b$};
+  
+  % Coordenadas dos pontos P e Q
+  \coordinate (P) at (-1.0, 2.236);
+  \coordinate (Q) at (1.5, 1.369);
+  
+  % Terceiro ponto de interseccao -R e ponto refletido R
+  \coordinate (Rneg) at (-0.38, -2.02);
+  \coordinate (Rpos) at (-0.38, 2.02);
+  
+  % Reta secante estendida passando por P e Q
+  \draw[thick, red!85!black] (-2.2, 2.65) -- (2.6, 0.98) node[right] {\small Reta Secante};
+  
+  % Linha vertical tracejada de reflexao no eixo x
+  \draw[dashed, thick, purple!80!black] (Rneg) -- (Rpos);
+  
+  % Pontos desenhados
+  \fill[red!80!black] (P) circle (2.2pt) node[above left, black] {$P(x_1, y_1)$};
+  \fill[red!80!black] (Q) circle (2.2pt) node[above right, black] {$Q(x_2, y_2)$};
+  \fill[red!80!black] (Rneg) circle (2.2pt) node[below left, black] {$-R(x_3, -y_3)$};
+  \fill[purple!90!black] (Rpos) circle (2.6pt) node[above right, black] {$\mathbf{R = P + Q = (x_3, y_3)}$};
+  
+  % Indicacao do ponto no infinito
+  \draw[->, thick, teal] (0, 2.9) -- (0, 3.7) node[above] {\small $\mathcal{O}$ (ponto no infinito)};
+\end{tikzpicture}
+\end{center}
+
+---
+
+### Dedução Algébrica Completa das Fórmulas da Lei de Grupo
+
+Vamos deduzir formalmente as equações para calcular $R = (x_3, y_3) = P + Q$:
+
+1. **A Inclinação $\lambda$ da Reta:**
+   - **Caso 1: Reta Secante ($P \neq Q$ com $x_1 \neq x_2$):**
+     $$\lambda = \frac{y_2 - y_1}{x_2 - x_1}$$
+   - **Caso 2: Reta Tangente / Duplicação ($P = Q$ com $y_1 \neq 0$):**
+     Calcula-se a derivada da curva elíptica $y^2 = x^3 + ax + b$ por diferenciação implícita:
+     $$2y \frac{dy}{dx} = 3x^2 + a \implies \lambda = \frac{dy}{dx} = \frac{3x_1^2 + a}{2y_1}$$
+
+2. **Equação da Linha Reta:**
+   A reta que passa por $P(x_1, y_1)$ com inclinação $\lambda$ é dada por:
+   $$y = \lambda(x - x_1) + y_1$$
+
+3. **Intersecção da Reta com a Curva Elíptica:**
+   Substitui-se a equação da reta na equação da curva $y^2 = x^3 + ax + b$:
+   $$\big(\lambda(x - x_1) + y_1\big)^2 = x^3 + ax + b$$
+   Expandindo e agrupando todos os termos em potências decrescentes de $x$:
+   $$x^3 - \lambda^2 x^2 + \dots = 0$$
+
+4. **Aplicação das Relações de Viète:**
+   As raízes desta equação polinomial cúbica são precisamente as abscissas dos três pontos de intersecção: $x_1, x_2, x_3$.
+   Pelas relações de Viète, a soma das três raízes de um polinômio cúbico mônico $x^3 - c_2 x^2 + c_1 x - c_0 = 0$ é igual ao coeficiente do termo quadrático:
+   $$x_1 + x_2 + x_3 = \lambda^2$$
+   Isolando a coordenada $x_3$ do terceiro ponto:
+   $$
+   x_3 = \lambda^2 - x_1 - x_2
+   $$
+   *(Para duplicação $P = Q$, como $x_1 = x_2$, a fórmula torna-se $x_3 = \lambda^2 - 2x_1$)*.
+
+5. **A Coordenada $y_3$ (Reflexão Vertical):**
+   A ordenada da intersecção $-R$ na reta é:
+   $$y_{\text{inter}} = \lambda(x_3 - x_1) + y_1$$
+   Como $R = P + Q$ é a reflexão de $-R$ no eixo $x$, invertemos o sinal ($y_3 = -y_{\text{inter}}$):
+   $$
+   y_3 = -\big[\lambda(x_3 - x_1) + y_1\big] = \lambda(x_1 - x_3) - y_1
+   $$
+
+---
+
+## 7.3 Curvas Elípticas sobre Corpos Finitos ($\mathbb{F}_p$)
+
+No mundo da computação e da criptografia, números reais $\mathbb{R}$ não podem ser usados devido a erros de arredondamento de ponto flutuante e vulnerabilidades de aproximação contínua. Em vez disso, a curva elíptica é construída sobre um **Corpo Finito** $\mathbb{F}_p$, onde $p$ é um número primo grande:
+
+$$
+y^2 \equiv x^3 + ax + b \pmod p
+$$
+
+com $a, b \in \mathbb{F}_p$ e $4a^3 + 27b^2 \not\equiv 0 \pmod p$.
+
+### Propriedades da Curva em $\mathbb{F}_p$
+- **Nuvem Discreta de Pontos:** O conjunto $E(\mathbb{F}_p)$ não forma mais uma curva contínua, mas sim uma matriz dispersa de pontos discretos $(x, y) \in \{0, \dots, p-1\}^2$, com simetria horizontal em torno de $y = p/2$.
+- **Substituição de Divisão por Inverso Modular:** Toda divisão de inteiros nas fórmulas de $\lambda$ é obrigatoriamente convertida em multiplicação pelo inverso multiplicativo modular $\pmod p$:
+  $$\lambda \equiv \begin{cases} (y_2 - y_1) \cdot (x_2 - x_1)^{-1} \pmod p & \text{se } P \neq Q \\[6pt] (3x_1^2 + a) \cdot (2y_1)^{-1} \pmod p & \text{se } P = Q \end{cases}$$
+  $$x_3 \equiv \lambda^2 - x_1 - x_2 \pmod p$$
+  $$y_3 \equiv \lambda(x_1 - x_3) - y_1 \pmod p$$
+
+### Ordem do Grupo e o Teorema de Hasse
+
+O número total de pontos na curva, denotado pela ordem $\#E(\mathbb{F}_p)$ (incluindo o ponto $\mathcal{O}$), é finito. O matemático Helmut Hasse provou que a quantidade de pontos é sempre muito próxima de $p+1$:
+
+$$
+\big| \#E(\mathbb{F}_p) - (p + 1) \big| \leq 2\sqrt{p}
+$$
+isto é:
+$$
+p + 1 - 2\sqrt{p} \leq \#E(\mathbb{F}_p) \leq p + 1 + 2\sqrt{p}
+$$
+
+---
+
+## 7.4 Exemplo Numérico Completo Resolvido Passo a Passo
+
+Vamos resolver as contas com a curva elíptica:
+$$
+E: y^2 \equiv x^3 + 2x + 2 \pmod{17}
+$$
+com parâmetros $a = 2$, $b = 2$ sobre o corpo $\mathbb{F}_{17}$.
+
+### Teste de Sanidade do Ponto Base $P = (5, 1)$
+Verificando se $P = (5, 1)$ pertence a $E(\mathbb{F}_{17})$:
+- Lado esquerdo: $y^2 = 1^2 = 1 \pmod{17}$.
+- Lado direito: $x^3 + 2x + 2 = 5^3 + 2(5) + 2 = 125 + 10 + 2 = 137$.
+  Dividindo $137$ por $17$: $137 = 8 \times 17 + 1 \equiv 1 \pmod{17}$.
+Como $1 \equiv 1 \pmod{17}$, **o ponto $P$ pertence à curva** ✓.
+
+---
+
+### Passo 1: Duplicação de Ponto ($2P = P + P$)
+Como os pontos coincidem ($P = Q$), utilizamos a fórmula da reta tangente:
+$$
+\lambda \equiv \frac{3x_1^2 + a}{2y_1} \equiv \frac{3(5^2) + 2}{2(1)} = \frac{3(25) + 2}{2} = \frac{77}{2} \pmod{17}
+$$
+1. Redução do numerador: $77 = 4 \times 17 + 9 \implies 77 \equiv 9 \pmod{17}$.
+2. Inverso multiplicativo modular de $2 \pmod{17}$:
+   Procuramos $y$ tal que $2y \equiv 1 \pmod{17}$.
+   Como $2 \times 9 = 18 = 17 + 1 \equiv 1 \pmod{17}$, temos $2^{-1} \equiv 9 \pmod{17}$.
+3. Multiplicando o numerador pelo inverso modular do denominador:
+   $$\lambda \equiv 9 \times 9 = 81 \pmod{17}$$
+   Como $81 = 4 \times 17 + 13$, obtemos **$\lambda \equiv 13 \pmod{17}$**.
+
+Agora calculamos as coordenadas $(x_3, y_3)$ do ponto $2P$:
+- Coordenada $x_3$:
+  $$x_3 \equiv \lambda^2 - 2x_1 = 13^2 - 2(5) = 169 - 10 = 159 \pmod{17}$$
+  Como $159 = 9 \times 17 + 6$, temos **$x_3 \equiv 6 \pmod{17}$**.
+- Coordenada $y_3$:
+  $$y_3 \equiv \lambda(x_1 - x_3) - y_1 = 13(5 - 6) - 1 = 13(-1) - 1 = -14 \pmod{17}$$
+  Ajustando o resto negativo: $-14 + 17 = 3$, logo **$y_3 \equiv 3 \pmod{17}$**.
+
+**Resultado:**
+$$
+2P = (6, 3)
+$$
+*Conferindo na curva:* $3^2 = 9 \pmod{17}$; e $6^3 + 2(6) + 2 = 216 + 12 + 2 = 230 = 13 \times 17 + 9 \equiv 9 \pmod{17}$ ✓.
+
+---
+
+### Passo 2: Adição de Pontos Distintos ($3P = 2P + P$)
+Somamos o ponto $2P = (6, 3)$ com o ponto $P = (5, 1)$ ($P \neq Q$, logo usamos a reta secante):
+$$
+\lambda \equiv \frac{y_2 - y_1}{x_2 - x_1} \equiv \frac{1 - 3}{5 - 6} = \frac{-2}{-1} = 2 \pmod{17}
+$$
+A inclinação da secante é simplesmente **$\lambda \equiv 2 \pmod{17}$**.
+
+Calculando as novas coordenadas:
+- Coordenada $x_3$:
+  $$x_3 \equiv \lambda^2 - x_1 - x_2 = 2^2 - 6 - 5 = 4 - 11 = -7 \pmod{17}$$
+  Ajustando o negativo: $-7 + 17 = 10$, logo **$x_3 \equiv 10 \pmod{17}$**.
+- Coordenada $y_3$:
+  $$y_3 \equiv \lambda(x_1 - x_3) - y_1 = 2(6 - 10) - 3 = 2(-4) - 3 = -8 - 3 = -11 \pmod{17}$$
+  Ajustando o negativo: $-11 + 17 = 6$, logo **$y_3 \equiv 6 \pmod{17}$**.
+
+**Resultado:**
+$$
+3P = (10, 6)
+$$
+*Conferindo na curva:* $6^2 = 36 = 2 \times 17 + 2 \equiv 2 \pmod{17}$; e $10^3 + 2(10) + 2 = 1000 + 20 + 2 = 1022 = 60 \times 17 + 2 \equiv 2 \pmod{17}$ ✓.
+
+*(Nota: Esta curva elíptica específica sobre $\mathbb{F}_{17}$ possui exatamente 19 pontos, sendo um grupo cíclico de ordem prima).*
+
+---
+
+## 7.5 O Problema do Logaritmo Discreto em Curvas Elípticas (ECDLP)
+
+**Definição:** Dado um ponto gerador $G$ em uma curva elíptica e um ponto público resultante $Q = k \cdot G$, o **ECDLP (Elliptic Curve Discrete Logarithm Problem)** consiste em determinar o número inteiro escalar $k$.
+
+- **Direção Fácil (Multiplicação Escalar):** Calcular $Q = k \cdot G$ é executado em tempo logarítmico $O(\log k)$ através do algoritmo **Double-and-Add** (duplica-se o ponto a cada bit e soma-se $G$ se o bit for '1').
+- **Direção Difícil (Reversão):** Encontrar $k$ a partir de $G$ e $Q$ é computacionalmente intratável em curvas bem construídas.
+
+### Por que o ECC Usa Chaves Muito Menores que o RSA?
+
+Esta é a pergunta central da criptografia moderna:
+
+1. **Em $\mathbb{Z}_p^*$ (RSA e Diffie-Hellman clássico):**
+   Os inteiros admitem fatoração única em números primos. Isso permitiu aos matemáticos inventarem o algoritmo de **Index Calculus** e o **General Number Field Sieve (GNFS)**, que encontram logaritmos discretos e fatoram números em **tempo subexponencial**:
+   $$L_p\left[1/3, c\right] = O\left(\exp\left(c \cdot (\ln p)^{1/3} (\ln \ln p)^{2/3}\right)\right)$$
+   Por essa razão, para manter 128 bits de segurança, o módulo RSA precisa crescer para gigantescos **3072 bits**.
+
+2. **Em Curvas Elípticas $E(\mathbb{F}_p)$:**
+   Pontos de uma curva elíptica **não possuem estrutura de fatoração** (não existe uma base de "pontos primos").
+   Portanto, **o algoritmo de Index Calculus NÃO se aplica a curvas elípticas**.
+   Os melhores ataques conhecidos contra curvas elípticas gerais são **estritamente exponenciais**, limitados ao algoritmo genérico **Pollard $\rho$**, cujo custo computacional é:
+   $$O(\sqrt{n})$$
+   onde $n$ é a ordem do subgrupo.
+
+**Conclusão Prática:**
+Para atingir uma segurança de $2^{128}$ passos com Pollard $\rho$, precisamos apenas que $\sqrt{n} \approx 2^{128} \implies n \approx 2^{256}$. Uma curva de **256 bits** atinge os mesmos 128 bits de segurança que um módulo RSA de **3072 bits**!
+
+---
+
+## 7.6 Protocolos em Curvas: ECDH e Curvas Padrão
+
+### ECDH (Elliptic Curve Diffie-Hellman)
+
+O protocolo de troca de chaves Diffie-Hellman em curvas elípticas é modelado diretamente com multiplicadores escalares:
+
+$$
+\begin{array}{ccc}
+\textbf{Alice} & & \textbf{Bob} \\
+\text{Gera segredo: } d_A \xleftarrow{R} \mathbb{Z}_n & & \text{Gera segredo: } d_B \xleftarrow{R} \mathbb{Z}_n \\[4pt]
+Q_A = d_A \cdot G & \xrightarrow{\quad\quad Q_A \quad\quad} & \\[4pt]
+& \xleftarrow{\quad\quad Q_B \quad\quad} & Q_B = d_B \cdot G \\[6pt]
+\text{Calcula segredo:} & & \text{Calcula segredo:} \\
+S_A = d_A \cdot Q_B = d_A \cdot d_B \cdot G & & S_B = d_B \cdot Q_A = d_B \cdot d_A \cdot G
+\end{array}
+$$
+
+Ambos chegam ao mesmo ponto secreto $S = (x_S, y_S)$. A chave simétrica da sessão é derivada da coordenada $x_S$:
+$$
+k = \mathrm{KDF}(x_S)
+$$
+
+### Curvas Mais Utilizadas no Mundo Real
+
+1. **secp256k1:** Curva de Koblitz definida por $y^2 \equiv x^3 + 7 \pmod p$, com primos especiais que aceleram cálculos. Famosa por ser a curva do **Bitcoin, Ethereum e Blockchain**.
+2. **NIST P-256 (secp256r1):** Curva com coeficientes pseudoaleatórios padronizada pelo governo norte-americano, dominante em sites HTTPS, conexões TLS e certificados digitais governamentais.
+3. **Curve25519 (X25519 / Ed25519):** Criada pelo criptógrafo Daniel J. Bernstein (djb). É implementada na forma de Montgomery e Edwards. Foi projetada do zero para ser imune a falhas de canal lateral (timing attacks), cálculos sem inversões intermediárias e imune a curvas inválidas. Padrão no **WhatsApp, Signal, Tor, Apple iOS, SSH e WireGuard**.
+
+---
+
+# 8. Aprofundamentos (Contas na Mão)
+
+## 8.1 Teorema Chinês do Resto (CRT) — Exemplo Numérico Completo
+
+**Problema:** Encontrar o menor inteiro positivo $x$ que satisfaça simultaneamente o sistema de congruências:
+$$
+\begin{cases}
+x \equiv 2 \pmod 3 \\
+x \equiv 3 \pmod 5 \\
+x \equiv 2 \pmod 7
+\end{cases}
+$$
+
+Como os módulos $n_1 = 3, n_2 = 5, n_3 = 7$ são primos entre si aos pares ($\gcd = 1$), o CRT garante solução única módulo $N = 3 \times 5 \times 7 = 105$.
+
+### Tabela de Resolução do CRT
+
+| $i$ | Módulo $n_i$ | Resto $a_i$ | $N_i = N/n_i$ | Inverso $y_i \equiv N_i^{-1} \pmod{n_i}$ | Parcela $a_i \cdot N_i \cdot y_i$ |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| **1** | $3$ | $2$ | $105/3 = 35$ | $35 \equiv 2 \pmod 3 \implies 2 \times 2 = 4 \equiv 1 \implies \mathbf{y_1 = 2}$ | $2 \times 35 \times 2 = \mathbf{140}$ |
+| **2** | $5$ | $3$ | $105/5 = 21$ | $21 \equiv 1 \pmod 5 \implies 1 \times 1 = 1 \equiv 1 \implies \mathbf{y_2 = 1}$ | $3 \times 21 \times 1 = \mathbf{63}$ |
+| **3** | $7$ | $2$ | $105/7 = 15$ | $15 \equiv 1 \pmod 7 \implies 1 \times 1 = 1 \equiv 1 \implies \mathbf{y_3 = 1}$ | $2 \times 15 \times 1 = \mathbf{30}$ |
+
+### Recombinação e Redução
+Somam-se todas as parcelas:
+$$
+X = \sum_{i=1}^3 a_i \cdot N_i \cdot y_i = 140 + 63 + 30 = 233
+$$
+Reduzindo módulo $N = 105$:
+$$
+x \equiv 233 \pmod{105} \implies 233 = 2 \times 105 + 23 \implies \mathbf{x = 23}
+$$
+
+### Conferência das Congruências
+- $23 = 7 \times 3 + 2 \implies 23 \equiv 2 \pmod 3$ ✓
+- $23 = 4 \times 5 + 3 \implies 23 \equiv 3 \pmod 5$ ✓
+- $23 = 3 \times 7 + 2 \implies 23 \equiv 2 \pmod 7$ ✓
+
+---
+
+## 8.2 RSA-CRT — Como a Decifragem Fica 4× Mais Rápida e o Ataque de Bellcore
+
+Ao decifrar com RSA ou gerar assinaturas, deve-se computar $m \equiv c^d \pmod N$. Para $N$ de 2048 bits, esta operação é computacionalmente pesada. O algoritmo RSA-CRT decompõe o cálculo em duas contas menores sobre os fatores primos $p$ e $q$ de 1024 bits.
+
+### Pré-computações Armazenadas na Chave Privada
+- $d_p \equiv d \pmod{p - 1}$
+- $d_q \equiv d \pmod{q - 1}$
+- $q_{\mathrm{inv}} \equiv q^{-1} \pmod p$
+
+### Algoritmo de Garner para RSA-CRT
+1. Calcula-se a redução nos módulos primos:
+   $$m_1 \equiv c^{d_p} \pmod p, \qquad m_2 \equiv c^{d_q} \pmod q$$
+2. Recombina-se pelo algoritmo de Garner:
+   $$h \equiv q_{\mathrm{inv}} \cdot (m_1 - m_2) \pmod p$$
+   $$m = m_2 + h \cdot q$$
+
+### Por que a Aceleração é de 4×?
+A complexidade de tempo da exponenciação modular de $k$ bits cresce cubicamente: $O(k^3)$.
+- Sem CRT: $(2048)^3 = 1$ unidade relativa de custo.
+- Com CRT: duas exponenciações de $1024$ bits cada:
+  $$2 \times \left(\frac{1}{2}\right)^3 = 2 \times \frac{1}{8} = \frac{1}{4}$$
+O tempo total cai para um quarto ($\mathbf{4\times \text{ mais rápido}}$)!
+
+---
+
+### O Ataque de Falha de Bellcore (Boneh, DeMillo, Lipton 1997)
+
+O RSA-CRT introduz uma vulnerabilidade mortal se o hardware sofrer indução de falha física (*fault injection*, como um pico de tensão ou emissão laser durante o cálculo):
+
+1. Suponha que o processador calcule $m_2 \pmod q$ com perfeição, mas sofra um erro em $m_1 \pmod p$, gerando um valor corrompido $m_1'$.
+2. A recombinação produz uma assinatura corrompida $\sigma'$ tal que:
+   $$\sigma'^e \not\equiv m \pmod p, \qquad \text{mas} \qquad \sigma'^e \equiv m \pmod q$$
+3. Isso significa que a diferença $(\sigma'^e - m)$ é um múltiplo do primo $q$, mas **não** é múltiplo de $p$!
+4. O atacante calcula o Maior Divisor Comum com o módulo público $N$:
+   $$
+   \gcd\left(\sigma'^e - m, \, N\right) = q
+   $$
+5. O cálculo do MDC via algoritmo de Euclides leva frações de milissegundo e **revela imediatamente o fator secreto $q$**, fatorando $N$ e destruindo a chave privada inteira!
+
+> **Contra-medida Obrigatória:** Toda biblioteca séria (OpenSSL, BouncyCastle) valida a assinatura calculando $\sigma^e \stackrel{?}{\equiv} m \pmod N$ antes de devolvê-la ao usuário. Se houver falha, a assinatura é descartada.
+
+---
+
+## 8.3 Algoritmos de Quebra do Logaritmo Discreto
+
+### 1. Baby-Step Giant-Step (BSGS) — Algoritmo de Shanks
+
+Resolve $g^x \equiv h \pmod p$ em um grupo de ordem $n$.
+Baseia-se no compromisso espaço-tempo (*space-time tradeoff*).
+
+1. Escreve-se o expoente desconhecido como:
+   $$x = i \cdot m + j, \qquad \text{com } m = \lceil \sqrt{n} \rceil \quad \text{e } 0 \leq j, i < m$$
+2. A equação $g^{i \cdot m + j} \equiv h \pmod p$ é rearranjada para:
+   $$
+   g^j \equiv h \cdot \left(g^{-m}\right)^i \pmod p
+   $$
+3. **Passos de Bebê (Baby Steps):**
+   Calcula-se $g^j \bmod p$ para todos os $j \in \{0, 1, \dots, m-1\}$ e armazena-se na tabela hash os pares $(g^j, j)$.
+4. **Passos de Gigante (Giant Steps):**
+   Calcula-se $g^{-m} \equiv (g^m)^{-1} \pmod p$.
+   Para cada $i = 0, 1, \dots, m-1$, computa-se $y \equiv h \cdot (g^{-m})^i \pmod p$ e verifica-se se $y$ já existe na tabela hash.
+   Ao encontrar colisão $g^j = y$, obtém-se imediatamente:
+   $$x = i \cdot m + j$$
+- **Custo:** Tempo $O(\sqrt{n})$ e **Memória $O(\sqrt{n})$**.
+
+---
+
+### 2. Algoritmo Pollard $\rho$ (Memória Constante $O(1)$)
+
+O BSGS requer gigabytes de memória RAM para grupos médios. O algoritmo **Pollard $\rho$** atinge o mesmo tempo $O(\sqrt{n})$, mas consumindo **memória $O(1)$**, tornando-o o ataque mais perigoso contra ECDSA e ECDLP.
+
+- **Mecânica:** Gera um passeio pseudoaleatório de pontos $P_k = a_k G + b_k Q$.
+- Pelo **Paradoxo do Aniversário**, após aproximadamente $\approx 1{,}25 \sqrt{n}$ passos, o passeio obrigatoriamente colide consigo mesmo, entrando em um ciclo com o formato geométrico da letra grega $\rho$ (rho).
+- A colisão é detectada em tempo real com o **Algoritmo dos Dois Ponteiros de Floyd** (um ponteiro avança 1 passo enquanto o outro avança 2 passos).
+- Quando a colisão ocorre:
+  $$a_1 G + b_1 Q = a_2 G + b_2 Q \implies (a_1 - a_2) G = (b_2 - b_1) Q = (b_2 - b_1) d G$$
+- Conclui-se o valor da chave secreta $d$:
+  $$d \equiv (a_1 - a_2) \cdot (b_2 - b_1)^{-1} \pmod n$$
+
+---
+
+---
+
+# 9. Exercícios Resolvidos Passo a Passo
+
+Resolva no papel antes de conferir a solução. Todas as respostas contêm o passo a passo algébrico completo e as congruências explicitadas.
+
+---
+
+## Bloco A — Aritmética Modular e Grupos
+
+1. Calcule $\gcd(1071, 462)$ utilizando o Algoritmo Euclidiano.
+2. Encontre o inverso multiplicativo modular $17^{-1} \pmod{43}$ usando o Algoritmo Estendido de Euclides.
+3. Quanto vale $\varphi(100)$? E quanto vale $\varphi(143)$?
+4. Calcule $7^{222} \pmod{11}$ aplicando o Pequeno Teorema de Fermat.
+5. Quantos elementos possui o grupo multiplicativo $\mathbb{Z}_{15}^*$? Liste todos os seus elementos. Ele é um grupo cíclico?
+6. No grupo $\mathbb{Z}_{11}^*$, qual é a ordem do elemento $a = 3$? Ele é um gerador do grupo?
+
+<details><summary><b>Respostas e Resoluções Detalhadas — Bloco A</b></summary>
+
+1. **Cálculo de $\gcd(1071, 462)$ por Euclides:**
+   - $1071 = 2 \times 462 + 147$
+   - $462 = 3 \times 147 + 21$
+   - $147 = 7 \times 21 + 0$
+   O último resto não-nulo é **$21$**. Portanto, $\gcd(1071, 462) = 21$.
+
+2. **Cálculo de $17^{-1} \pmod{43}$ via Euclides Estendido:**
+   - Divisões sucessivas:
+     - $43 = 2 \times 17 + 9 \implies 9 = 43 - 2 \times 17$
+     - $17 = 1 \times 9 + 8 \implies 8 = 17 - 1 \times 9$
+     - $9 = 1 \times 8 + 1 \implies 1 = 9 - 1 \times 8$
+   - Substituição regressiva para expressar $1$ como combinação linear:
+     $$1 = 9 - 1 \times (17 - 1 \times 9) = 2 \times 9 - 1 \times 17$$
+     $$1 = 2 \times (43 - 2 \times 17) - 1 \times 17 = 2 \times 43 - 5 \times 17$$
+   - Reduzindo módulo $43$:
+     $$-5 \times 17 \equiv 1 \pmod{43}$$
+     Como $-5 \equiv -5 + 43 = 38 \pmod{43}$, temos:
+     $$17^{-1} \equiv \mathbf{38} \pmod{43}$$
+     *Conferência:* $17 \times 38 = 646 = 15 \times 43 + 1 \equiv 1 \pmod{43}$ ✓.
+
+3. **Cálculo da Função Totiente de Euler:**
+   - Para $100 = 2^2 \times 5^2$:
+     $$\varphi(100) = 100 \times \left(1 - \frac{1}{2}\right) \times \left(1 - \frac{1}{5}\right) = 100 \times \frac{1}{2} \times \frac{4}{5} = \mathbf{40}$$
+   - Para $143 = 11 \times 13$ (produto de dois primos distintos):
+     $$\varphi(143) = (11 - 1)(13 - 1) = 10 \times 12 = \mathbf{120}$$
+
+4. **Cálculo de $7^{222} \pmod{11}$ por Fermat:**
+   - Como $p = 11$ é primo e $\gcd(7, 11) = 1$, pelo Pequeno Teorema de Fermat:
+     $$7^{10} \equiv 1 \pmod{11}$$
+   - Reduzimos o expoente no módulo da ordem ($\bmod 10$):
+     $$222 = 22 \times 10 + 2 \implies 222 \equiv 2 \pmod{10}$$
+   - Portanto:
+     $$7^{222} \equiv 7^2 = 49 \pmod{11}$$
+     Como $49 = 4 \times 11 + 5$, temos $7^{222} \equiv \mathbf{5} \pmod{11}$.
+
+5. **Estrutura de $\mathbb{Z}_{15}^*$:**
+   - Como $15 = 3 \times 5$, temos $|\mathbb{Z}_{15}^*| = \varphi(15) = (3-1)(5-1) = 2 \times 4 = \mathbf{8 \text{ elementos}}$.
+   - São os números em $\{1, \dots, 14\}$ coprimos com 15:
+     $$\mathbb{Z}_{15}^* = \{1, 2, 4, 7, 8, 11, 13, 14\}$$
+   - Pelo Teorema Chinês do Resto, $\mathbb{Z}_{15}^* \cong \mathbb{Z}_3^* \times \mathbb{Z}_5^* \cong \mathbb{Z}_2 \times \mathbb{Z}_4$.
+   - A ordem máxima de qualquer elemento é $\mathrm{mmc}(2, 4) = 4 < 8$. Nenhum elemento tem ordem 8. Logo, $\mathbb{Z}_{15}^*$ **NÃO é cíclico**.
+
+6. **Ordem de $3$ em $\mathbb{Z}_{11}^*$:**
+   Calculamos as potências sucessivas de $3 \pmod{11}$:
+   - $3^1 \equiv 3 \pmod{11}$
+   - $3^2 \equiv 9 \pmod{11}$
+   - $3^3 \equiv 27 \equiv 5 \pmod{11}$
+   - $3^4 \equiv 5 \times 3 = 15 \equiv 4 \pmod{11}$
+   - $3^5 \equiv 4 \times 3 = 12 \equiv 1 \pmod{11}$
+   O menor expoente positivo que resulta em $1$ é $5$.
+   Portanto, a ordem de $3$ é **$\mathrm{ord}(3) = 5$**.
+   Como o grupo tem ordem $|\mathbb{Z}_{11}^*| = 10$ e $5 \neq 10$, $3$ **não é gerador** de $\mathbb{Z}_{11}^*$ (ele gera apenas o subgrupo $\{1, 3, 4, 5, 9\}$).
 
 </details>
+
+---
 
 ## Bloco B — RSA
 
-7. `p=5,q=11,e=3`. Ache `N,φ(N),d`.
-8. Com essa chave, cifre `m=9` e decifre.
-9. Alice publica `N=3233,e=17` com `p=61,q=53`. Qual é `d`?
-10. Por que `e=65537` e não `e=3`?
-11. Mostre a maleabilidade: dado `c=m^e`, como produzir cifra de `2m`?
+7. Sejam $p = 5$, $q = 11$ e expoente público $e = 3$. Determine o módulo $N$, o totiente $\varphi(N)$ e a chave privada $d$.
+8. Utilizando a chave obtida no exercício 7, cifre a mensagem $m = 9$ e em seguida decifre o texto cifrado resultante para recuperar $m$.
+9. Alice publicou $N = 3233$ e $e = 17$. Um espião descobriu que $N$ fatora em $p = 61$ e $q = 53$. Calcule o expoente de decifragem privado $d$.
+10. Por que as implementações comerciais de RSA adotam universalmente $e = 65537$ em vez de $e = 3$?
+11. Demonstre formalmente a maleabilidade do RSA cru: dado um texto cifrado $c \equiv m^e \pmod N$, mostre como gerar uma cifra válida para $2m$ sem conhecer o texto claro $m$.
 
-<details><summary><b>Respostas B</b></summary>
+<details><summary><b>Respostas e Resoluções Detalhadas — Bloco B</b></summary>
 
-7. `N=55,φ=40,d=27`.
-8. `c=14`, `14^27 mod55=9` ✓ (detalhes no guia)
-9. `φ=3120,d=2753`.
-10. `e=3` frágil (sem redução, Håstad precisa 3 destinatários). `65537=2¹⁶+1` tem 2 bits 1 (17 quadrados +1 mult) e é grande o bastante.
-11. `c'=c·2^e mod N` → `Dec(c')=2m` → não CCA-seguro.
+7. **Setup das Chaves RSA:**
+   - Módulo: $N = p \cdot q = 5 \times 11 = \mathbf{55}$.
+   - Totiente: $\varphi(N) = (5 - 1)(11 - 1) = 4 \times 10 = \mathbf{40}$.
+   - Chave privada $d$: buscamos $d$ tal que $3d \equiv 1 \pmod{40}$.
+     Pelo algoritmo estendido: $3 \times 27 = 81 = 2 \times 40 + 1 \equiv 1 \pmod{40}$.
+     Portanto, **$d = 27$**.
 
-</details>
+8. **Cifragem e Decifragem:**
+   - **Cifragem de $m = 9$:**
+     $$c \equiv m^e \equiv 9^3 = 729 \pmod{55}$$
+     Dividindo $729$ por $55$: $729 = 13 \times 55 + 14 \implies \mathbf{c = 14}$.
+   - **Decifragem de $c = 14$:**
+     $$m \equiv c^d \equiv 14^{27} \pmod{55}$$
+     Decompondo o expoente $27 = 16 + 8 + 2 + 1$:
+     - $14^1 \equiv 14 \pmod{55}$
+     - $14^2 = 196 = 3 \times 55 + 31 \equiv 31 \equiv -24 \pmod{55}$
+     - $14^4 \equiv (-24)^2 = 576 = 10 \times 55 + 26 \equiv 26 \pmod{55}$
+     - $14^8 \equiv 26^2 = 676 = 12 \times 55 + 16 \equiv 16 \pmod{55}$
+     - $14^{16} \equiv 16^2 = 256 = 4 \times 55 + 36 \equiv 36 \equiv -19 \pmod{55}$
+     Multiplicando os termos:
+     $$14^{27} = 14^{16} \times 14^8 \times 14^2 \times 14^1 \equiv (-19) \times 16 \times 31 \times 14 \pmod{55}$$
+     $(-19) \times 16 = -304 = -6 \times 55 + 26 \equiv 26 \pmod{55}$.
+     $31 \times 14 = 434 = 7 \times 55 + 49 \equiv -6 \pmod{55}$.
+     $m \equiv 26 \times (-6) = -156 = -3 \times 55 + 9 \equiv \mathbf{9} \pmod{55}$ ✓.
 
-## Bloco C — DH, ElGamal, assinaturas
+9. **Chave Privada $d$ para $N = 3233$, $e = 17$:**
+   - $\varphi(N) = (61 - 1)(53 - 1) = 60 \times 52 = 3120$.
+   - Calculamos $d \equiv 17^{-1} \pmod{3120}$ via Euclides estendido:
+     - $3120 = 183 \times 17 + 9 \implies 9 = 3120 - 183 \times 17$
+     - $17 = 1 \times 9 + 8 \implies 8 = 17 - 1 \times 9$
+     - $9 = 1 \times 8 + 1 \implies 1 = 9 - 1 \times 8 = 2 \times 9 - 1 \times 17 = 2(3120 - 183 \times 17) - 17$
+     $$1 = 2 \times 3120 - 367 \times 17$$
+   - Reduzindo $\bmod 3120$:
+     $$d \equiv -367 \equiv -367 + 3120 = \mathbf{2753} \pmod{3120}$$
 
-12. `p=23,g=5,a=4,b=3`. Qual segredo comum?
-13. O que Eve vê? Por que não consegue?
-14. Em ElGamal, reuso de `r` com `m₁,m₂` e Eve conhece `m₁`?
-15. Duas assinaturas ECDSA `(r,s₁),(r,s₂)` mesmo `r`! Derive `k` e `d`.
-16. Por que assinar `H(m)` exige resistência a colisão, não só unidirecional?
+10. **Por que $e = 65537$ e não $e = 3$:**
+    - O expoente $e = 3$ é vulnerável ao ataque de raiz direta se $m^3 < N$ e ao ataque de difusão de Håstad (basta interceptar a mesma mensagem enviada para 3 destinatários com $e=3$).
+    - $e = 65537 = 2^{16} + 1$ é um número primo de Fermat com apenas dois bits '1' em binário (`10000000000000001₂`). Ele requer apenas 16 operações de quadrado e 1 multiplicação modular no algoritmo square-and-multiply, aliando eficiência máxima à imunidade contra ataques de expoente pequeno.
 
-<details><summary><b>Respostas C</b></summary>
-
-12. `A=4,B=10,s=18` ✓
-13. Vê `p,g,A,B`. Precisaria DL ou CDH — com 3072 bits não.
-14. `c₂=m·h^r` → `m₂=m₁·c₂⁽²⁾/c₂⁽¹⁾` → **nonce reusado = mensagem vazada**.
-15. `k=(e₁−e₂)/(s₁−s₂)`, `d=(s₁k−e₁)/r` → PS3/Android.
-16. Unidirecional não basta: forjador acha `H(m)=H(m')`, te faz assinar `m`, vale pra `m'` → precisa colisão (MD5, SHA-1 quebrados).
-
-</details>
-
-## Bloco D — conceitual (uma frase)
-
-17. Por que `φ(pq)=(p-1)(q-1)` é a porta dos fundos do RSA?
-18. Diferença prática CPA vs CCA — cenário real?
-19. Por que DDH é falsa em `Z*_p` e como o padrão conserta?
-20. Por que ECC 256 bits ≈ RSA 3072 bits?
-
-<details><summary><b>Respostas D</b></summary>
-
-17. Quem sabe `p,q` calcula `φ` e `d`; quem só tem `N` precisa fatorar. Conhecer `φ(N)` ⇔ fatorar `N`.
-18. CPA = passivo; CCA = manda cifras e observa. Cenário: servidor responde "padding inválido" → Bleichenbacher decifra. CPA não cobre, CCA sim.
-19. Legendre vaza 1 bit. Conserto: subgrupo ordem prima `q` (`p=2q+1`).
-20. `Z*_p` tem index calculus subexp. → `p` enorme; curvas só Pollard rho `O(√n)` → `n/2` segurança.
+11. **Demonstração Algébrica da Maleabilidade do RSA Cru:**
+    - Seja $c \equiv m^e \pmod N$.
+    - O adversário calcula a cifra de 2: $c_2 \equiv 2^e \pmod N$.
+    - Ele multiplica as duas cifras:
+      $$c' \equiv c \cdot c_2 \equiv m^e \cdot 2^e \equiv (2m)^e \pmod N$$
+    - Quando o receptor decifra $c'$ com a chave privada $d$:
+      $$\mathrm{Dec}(c') \equiv (c')^d \equiv ((2m)^e)^d \equiv 2m \pmod N$$
+    - O adversário obteve um cifrado válido para a mensagem dobrada $2m$ sem nunca saber quem era $m$.
 
 </details>
 
 ---
 
-# 10. Colinhas finais
+## Bloco C — Diffie-Hellman, ElGamal e Assinaturas
 
-## Quem resolve o quê
+12. No protocolo Diffie-Hellman com parâmetros públicos $p = 23$ e $g = 5$, Alice escolhe segredo $a = 4$ e Bob escolhe $b = 3$. Qual é o segredo compartilhado final $s$?
+13. O que um espião passivo (Eve) observa no canal durante a troca do exercício 12? Por que Eve é incapaz de descobrir $s$?
+14. No criptossistema ElGamal, suponha que Alice cifre duas mensagens distintas $m_1$ e $m_2$ para Bob reutilizando o mesmo nonce efêmero $r$. Mostre como Eve, conhecendo apenas $m_1$, recupera a mensagem secreta $m_2$.
+15. Um servidor cometeu a falha de assinar duas mensagens distintas $m_1$ e $m_2$ com ECDSA usando o mesmo nonce efêmero $k$, gerando assinaturas $(r, s_1)$ e $(r, s_2)$. Demonstre como isolar $k$ e em seguida extrair a chave privada mestra $d$.
+16. Por que o paradigma Hash-and-Sign exige estritamente resistência à colisão para a função $H$, e não apenas resistência à pré-imagem?
 
-| Esquema | Grupo | Hipótese | Serve pra |
-|---|---|---|---|
-| RSA | `Z*_N` | fatoração / RSA | cifrar + assinar |
-| DH / ECDH | `Z*_p` / curva | CDH / DDH | trocar chave |
-| ElGamal | `Z*_p` / curva | DDH | cifrar |
-| DSA / ECDSA | subgrupo ordem `q` / curva | DL | assinar |
+<details><summary><b>Respostas e Resoluções Detalhadas — Bloco C</b></summary>
 
-## Erros clássicos (todos já derrubaram sistemas reais)
+12. **Cálculo do Segredo DH:**
+    - Alice envia: $A \equiv 5^4 = 625 = 27 \times 23 + 4 \equiv \mathbf{4} \pmod{23}$.
+    - Bob envia: $B \equiv 5^3 = 125 = 5 \times 23 + 10 \equiv \mathbf{10} \pmod{23}$.
+    - Alice calcula: $s \equiv B^a \equiv 10^4 = 10000 = 434 \times 23 + 18 \equiv \mathbf{18} \pmod{23}$.
+    - Bob calcula: $s \equiv A^b \equiv 4^3 = 64 = 2 \times 23 + 18 \equiv \mathbf{18} \pmod{23}$ ✓.
 
-1. RSA sem padding
-2. Reusar nonce `k` no (EC)DSA
-3. DH sem autenticação → MITM
-4. Confundir cifragem com assinatura
-5. RNG fraco
-6. Verificar padding por parsing
-7. Comparação não constante → side-channel
+13. **Visão de Eve e Hipótese CDH:**
+    - Eve intercepta: $p = 23, g = 5, A = 4, B = 10$.
+    - Para achar o segredo $s = g^{ab} \pmod p$, Eve precisaria resolver o **Problema Computacional de Diffie-Hellman (CDH)** ou calcular o logaritmo discreto $a = \log_g A \pmod p$. Com parâmetros reais de 3072 bits em $\mathbb{Z}_p^*$ ou 256 bits em curvas elípticas, este cálculo exigiria centenas de anos dos maiores supercomputadores do planeta.
 
-## O que usar hoje
+14. **Ataque de Reuso de Nonce no ElGamal:**
+    - As cifras geradas são:
+      $$c_1 \equiv g^r \pmod p, \qquad c_2^{(1)} \equiv m_1 \cdot h^r \pmod p, \qquad c_2^{(2)} \equiv m_2 \cdot h^r \pmod p$$
+    - Como o termo mascarador $h^r \pmod p$ é idêntico em ambas, Eve divide $c_2^{(2)}$ por $c_2^{(1)}$:
+      $$\frac{c_2^{(2)}}{c_2^{(1)}} \equiv \frac{m_2 \cdot h^r}{m_1 \cdot h^r} \equiv \frac{m_2}{m_1} \pmod p$$
+    - Conhecendo $m_1$, Eve multiplica pelo inverso de $m_1$:
+      $$m_2 \equiv m_1 \cdot c_2^{(2)} \cdot \left(c_2^{(1)}\right)^{-1} \pmod p$$
+    - A mensagem secreta $m_2$ é desmascarada sem que Eve conheça a chave privada $x$.
 
-- **Troca de chave**: X25519 (ECDHE)
-- **Assinatura**: Ed25519, ou ECDSA P-256
-- **Cifragem pública**: HPKE / ECIES; RSA-OAEP se obrigado
-- **Hash**: SHA-256 ou SHA-3
-- **Simétrico**: AES-256-GCM ou ChaCha20-Poly1305
+15. **Quebra de Chave ECDSA por Repetição de $k$:**
+    - As assinaturas satisfazem:
+      $$s_1 \equiv k^{-1}(e_1 + r \cdot d) \pmod n, \qquad s_2 \equiv k^{-1}(e_2 + r \cdot d) \pmod n$$
+    - Subtraindo as duas congruências:
+      $$s_1 - s_2 \equiv k^{-1}(e_1 - e_2) \pmod n \implies k \equiv (e_1 - e_2) \cdot (s_1 - s_2)^{-1} \pmod n$$
+    - Uma vez descoberto $k$, isola-se $d$ da primeira equação:
+      $$s_1 \cdot k \equiv e_1 + r \cdot d \pmod n \implies d \equiv (s_1 \cdot k - e_1) \cdot r^{-1} \pmod n$$
 
-## Para responder em aula, saiba dizer em uma frase
+16. **Necessidade de Resistência à Colisão:**
+    - Se a função não for resistente à colisão, um fraudador pode encontrar computacionalmente dois documentos diferentes com o mesmo hash: $H(m_{\text{inocente}}) = H(m_{\text{fraude}})$.
+    - Ele induz a vítima a assinar $m_{\text{inocente}}$, obtendo $\sigma = \mathrm{Sign}(\mathrm{sk}, H(m_{\text{inocente}}))$.
+    - Como os hashes colidem, $\sigma$ torna-se uma assinatura matematicamente legítima para o documento fraudulento $m_{\text{fraude}}$, permitindo a transferência ilegal de valores ou forja de autoridade.
 
-- por que `φ(pq)=(p-1)(q-1)` é o segredo do RSA
-- por que RSA cru não é CPA-seguro
-- por que DH sofre MITM
-- por que ECC usa chaves menores (sem index calculus)
-- por que reusar `k` vaza a chave
-- diferença CPA×CCA, CDH×DDH, MAC×assinatura
+</details>
 
 ---
 
-## Referências
+## Bloco D — Perguntas Conceituais de Prova
 
-- Menezes, van Oorschot, Vanstone — *Handbook of Applied Cryptography* — cap. 2,3,4,8,11
-- Katz & Lindell — *Introduction to Modern Cryptography* — CPA/CCA/EUF-CMA
-- Hoffstein, Pipher, Silverman — *An Introduction to Mathematical Cryptography* — curvas
-- Nigel Smart — *Cryptography Made Simple*
+17. Por que a relação $\varphi(N) = (p-1)(q-1)$ é denominada a "porta dos fundos" (*trapdoor*) do RSA?
+18. Qual é a diferença prática fundamental entre segurança IND-CPA e IND-CCA em um cenário corporativo real?
+19. Por que a Hipótese Decisional de Diffie-Hellman (DDH) é **falsa** no grupo multiplicativo $\mathbb{Z}_p^*$ inteiro, e como os padrões criptográficos contornam essa limitação?
+20. Por que uma chave de Curva Elíptica de 256 bits (ex: secp256k1) atinge o mesmo nível de segurança computacional que um módulo RSA de 3072 bits?
+
+<details><summary><b>Respostas Conceituais — Bloco D</b></summary>
+
+17. **A Trapdoor do RSA:**
+    Multiplicar dois primos $p$ e $q$ para obter $N = pq$ é uma operação fácil; recuperar $p$ e $q$ a partir de $N$ exige fatoração (problema computacionalmente difícil). O conhecimento prévio dos fatores secretos $p$ e $q$ permite computar $\varphi(N) = (p-1)(q-1)$ instantaneamente, e através de $\varphi(N)$ inverter o expoente público para calcular $d \equiv e^{-1} \pmod{\varphi(N)}$. Quem conhece apenas $N$ é incapaz de calcular $\varphi(N)$ sem antes fatorar o módulo.
+
+18. **CPA vs. CCA no Mundo Real:**
+    - **IND-CPA:** Protege contra invasores puramente **passivos**, que interceptam mensagens cifradas na rede e tentam correlacioná-las com textos conhecidos.
+    - **IND-CCA:** Protege contra invasores **ativos**, que manipulam pacotes cifrados e os submetem a servidores, analisando tempos de resposta e mensagens de erro (oráculos de decifragem). No ataque de Bleichenbacher, o servidor agia como um oráculo de padding: o esquema era passivamente seguro, mas caiu ativamente sob CCA. Em sistemas de produção, IND-CCA2 é o requisito mínimo indispensável.
+
+19. **Falha da DDH em $\mathbb{Z}_p^*$ e o Uso de Subgrupos:**
+    No grupo $\mathbb{Z}_p^*$ inteiro, o Símbolo de Legendre / resíduo quadrático vaza 1 bit de informação determinístico sobre se um elemento é um quadrado perfeito mod $p$. Como o produto de dois não-resíduos é um resíduo, o adversário consegue distinguir $g^{ab}$ de um elemento aleatório com vantagem não-desprezível de $1/2$. A solução padronizada consiste em trabalhar exclusivamente dentro de um **subgrupo de ordem prima $q$** de $\mathbb{Z}_p^*$ (gerado a partir de primos seguros $p = 2q + 1$), onde todos os elementos pertencem ao mesmo subgrupo de resíduos quadráticos e a DDH se sustenta rigorosamente.
+
+20. **ECC 256 bits vs. RSA 3072 bits:**
+    Em $\mathbb{Z}_p^*$, os elementos inteiros possuem fatoração em fatores primos, o que permite o funcionamento do algoritmo **Index Calculus / GNFS**, que quebra o logaritmo discreto e fatora módulos em tempo **subexponencial**. Em curvas elípticas, os pontos da curva não possuem estrutura de fatoração primária; os únicos algoritmos conhecidos contra o ECDLP são genéricos e **estritamente exponenciais** (como o algoritmo Pollard $\rho$, de complexidade $O(\sqrt{n})$). Assim, para obter 128 bits de segurança ($2^{128}$ operações), o RSA precisa de um módulo de $3072$ bits para compensar o avanço subexponencial, enquanto as curvas elípticas precisam de uma ordem prima de apenas $n \approx 2^{256}$ bits ($\sqrt{2^{256}} = 2^{128}$).
+
+</details>
+
+---
+
+# 10. Colinhas Finais de Consulta Rápida
+
+## Mapa de Esquemas, Grupos e Hipóteses
+
+| Esquema | Grupo / Estrutura | Hipótese de Dificuldade | Função Principal | Padrão Atual Recomendado |
+|---|---|---|---|---|
+| **RSA** | Anel modular $\mathbb{Z}_N^*$ com $N = pq$ | Fatoração Inteira / RSA Problem | Cifragem e Assinatura | RSA-OAEP / RSA-PSS ($\geq 3072$ bits) |
+| **DHKE / ECDH** | Subgrupo de $\mathbb{Z}_p^*$ ou Curva $E(\mathbb{F}_p)$ | CDH / DDH / ECDLP | Troca de Chaves Segura | X25519 (Curve25519) ou ECDH P-256 |
+| **ElGamal** | Subgrupo de ordem prima $q$ de $\mathbb{Z}_p^*$ | DDH (Decisional Diffie-Hellman) | Cifragem de Chave Pública | Substituído por HPKE / ECIES |
+| **DSA / ECDSA** | Curva elíptica $E(\mathbb{F}_p)$ de ordem prima $n$ | DL / ECDLP | Assinatura Digital | Ed25519 ou ECDSA com RFC 6979 |
+
+---
+
+## Os 7 Erros Clássicos de Implementação
+
+1. **RSA sem Padding (Textbook RSA):** Cifragem determinística (não-CPA) e multiplicativamente maleável, além de vulnerável a ataques de raiz e broadcast.
+2. **Reutilização de Nonce ($k$) no ECDSA:** Permite isolar $k$ e extrair a chave privada mestra $d$ por subtração direta de duas assinaturas.
+3. **Diffie-Hellman sem Autenticação:** Suscetível a ataques ativos de Man-in-the-Middle (MITM); deve ser obrigatoriamente associado a certificados digitais no TLS 1.3.
+4. **Confundir Cifragem com Assinatura:** Cifrar protege o segredo da mensagem (usa a chave pública do destinatário); assinar garante autoria e integridade (usa a chave privada do remetente).
+5. **Geradores Fracos de Números Aleatórios (RNG):** Usar funções randômicas padrão de biblioteca (`rand()`, `Math.random()`) em vez de geradores criptográficos (`/dev/urandom`, `getrandom()`).
+6. **Oráculos de Padding por Resposta de Erro:** Tratar erros de padding revelando detalhes ao cliente, viabilizando o ataque de Bleichenbacher (ROBOT).
+7. **Comparações de Chaves em Tempo Não-Constante:** Utilizar operadores convencionais de igualdade (`==`, `memcmp`) que encerram a checagem no primeiro byte divergente, abrindo brechas para ataques de canal lateral baseados em tempo (*timing attacks*).
+
+---
+
+## Referências Bibliográficas Fundamentais
+
+- **Katz, Jonathan; Lindell, Yehuda.** *Introduction to Modern Cryptography*. 3ª Edição, CRC Press, 2020. (Referência para definições formais de jogos CPA, CCA e EUF-CMA).
+- **Menezes, Alfred J.; van Oorschot, Paul C.; Vanstone, Scott A.** *Handbook of Applied Cryptography*. CRC Press, 1996. (Disponível gratuitamente online; referência para algoritmos de teoria dos números).
+- **Hoffstein, Jeffrey; Pipher, Jill; Silverman, Joseph H.** *An Introduction to Mathematical Cryptography*. Springer, 2ª Edição, 2014. (Referência definitiva para a geometria de curvas elípticas e corpos finitos).
+- **Smart, Nigel.** *Cryptography Made Simple*. Springer, 2016. (Excelente equilíbrio entre álgebra abstrata e protocolos do mundo real).
+
 

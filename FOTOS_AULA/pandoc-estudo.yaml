@@ -1,0 +1,74 @@
+# Layout padrão para material de estudo (provas, guias, resumos).
+#
+# Uso:  pandoc --defaults=pandoc-estudo.yaml guia.md -o guia.pdf
+#    ou: ./build-pdf.sh guia.md
+#
+# Este arquivo é a FONTE ÚNICA do layout. Os .md individuais devem conter
+# apenas metadados do documento (título, autor, lang, toc). Não repita
+# header-includes lá — senão o pandoc concatena e o estilo duplica.
+#
+# Para mudar a densidade da página, mexa só aqui.
+#
+# NOTA: quase tudo vai sob `variables:`. O --defaults do pandoc só aceita o
+# "option set" geral (--pdf-engine, --metadata, etc.); opções LaTeX como
+# --documentclass / --fontsize / --geometry são REJEITADAS ali. Mas o
+# writer LaTeX as lê como variáveis, então declará-las em `variables:`
+# funciona e é a forma correta de fixá-las.
+
+# tectonic = LaTeX autocontido, não requer instalação de TeX.
+pdf-engine: tectonic
+
+variables:
+  # --- página ---
+  documentclass: article
+  fontsize: 10pt
+  papersize: a4
+
+  # 2cm preserva uma medida de linha confortável (~17cm). Mais apertado
+  # (1.5cm) economiza ~2 páginas mas deixa a linha com 100+ caracteres.
+  geometry: margin=2.0cm
+
+  # --- sumário / links ---
+  toc-depth: 3
+  numbersections: true
+  colorlinks: true
+  linkcolor: blue
+  urlcolor: blue
+
+  header-includes:
+        # --- base ---
+        - \usepackage{amsmath,amssymb,mathtools}
+        - \usepackage{booktabs,longtable,array}
+        - \usepackage{xcolor}
+        - \usepackage{microtype}
+        - \usepackage{tikz}
+        - \usetikzlibrary{arrows.meta,positioning}
+
+        # --- entrelinha ---
+        # 0.90: ~13.2pt sobre 10pt. É o piso confortável para material
+        # denso; abaixo disso distinguir letra fica difícil.
+        - \usepackage{setspace}
+        - \setstretch{0.90}
+
+        # --- títulos ---
+        # O article padrão gasta ~22pt antes de cada \subsection. Com 201
+        # subtítulos neste guia, comprimir isso economiza ~4 páginas.
+        # A ordem decrescente (section > subsection > subsubsection) é
+        # intencional: hierarquia visual correta.
+        - \usepackage{titlesec}
+        - \titlespacing*{\section}{0pt}{0.8ex plus 0.2ex minus 0.2ex}{0.4ex plus 0.2ex}
+        - \titlespacing*{\subsection}{0pt}{0.6ex plus 0.2ex minus 0.2ex}{0.3ex plus 0.2ex}
+        - \titlespacing*{\subsubsection}{0pt}{0.4ex plus 0.2ex minus 0.2ex}{0.2ex plus 0.2ex}
+
+        # --- listas ---
+        - \usepackage{enumitem}
+        - \setlist{itemsep=0pt,topsep=3pt,parsep=0pt,partopsep=0pt}
+
+        # --- equações display ---
+        # O padrão é ~11pt acima + ~11pt abaixo por equação. Com ~365
+        # equações neste guia, cortar para 4pt/3pt economiza ~5 páginas.
+        #
+        # \AtBeginDocument é OBRIGATÓRIO: o \normalsize que o pandoc
+        # emite no início do documento redefine estes valores e anularia
+        # o ajuste se fossem posto no preâmbulo.
+        - \AtBeginDocument{\setlength{\abovedisplayskip}{4pt plus 2pt minus 2pt}\setlength{\belowdisplayskip}{3pt plus 2pt minus 2pt}\setlength{\abovedisplayshortskip}{2pt plus 1pt minus 1pt}\setlength{\belowdisplayshortskip}{3pt plus 1pt minus 1pt}}

@@ -1,0 +1,294 @@
+\documentclass[8pt,a4paper]{extarticle}
+\usepackage[margin=5mm]{geometry}
+\usepackage{amsmath,mathtools,multicol,array,microtype}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\columnsep}{4mm}
+\setlength{\columnseprule}{0.15pt}
+\setlength{\abovedisplayskip}{0.4pt}
+\setlength{\belowdisplayskip}{0.4pt}
+\setlength{\abovedisplayshortskip}{0pt}
+\setlength{\belowdisplayshortskip}{0pt}
+\setlength{\emergencystretch}{1em}
+\sloppy
+\renewcommand{\arraystretch}{0.90}
+\newcommand{\sect}[1]{\vspace{0.8pt}{\bfseries\rule{\linewidth}{0.2pt}\par\vspace{-1.8pt}#1}\par\vspace{-0.2pt}}
+\newcommand{\sub}[1]{\vspace{0.2pt}\textbf{#1}\;}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\F}{\mathbb F}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\Adv}{\operatorname{Adv}}
+\newcommand{\negl}{\operatorname{negl}}
+\newcommand{\Enc}{\operatorname{Enc}}
+\newcommand{\Dec}{\operatorname{Dec}}
+\newcommand{\MSB}{\operatorname{MSB}}
+\newcommand{\GHASH}{\operatorname{GHASH}}
+\newcommand{\HMAC}{\operatorname{HMAC}}
+\newcommand{\OK}{\textsc{pass}}
+\newcommand{\BAD}{\textsc{composite}}
+\begin{document}
+\fontsize{6.10}{6.42}\selectfont
+\begin{center}
+{\fontsize{9.2}{9.5}\selectfont\bfseries CRYPTOGRAPHY EXAM 1 --- CHEAT SHEET}
+\end{center}
+\vspace{-3pt}
+\begin{multicols}{2}
+
+\sect{MODULAR ARITHMETIC}
+\sub{Congruence} $a\equiv b\pmod n\iff n\mid(a-b)$. Division by $b$: multiply by $b^{-1}$; valid iff $\gcd(b,n)=1$.
+
+\sub{Euclid/B\'ezout}
+$a=qb+r$; $\gcd(a,b)=\gcd(b,a\bmod b)$;
+$ax+by=\gcd(a,b)$. In particular,
+\[
+\boxed{\gcd(a,N)=1\iff\exists x,y\in\Z:\ ax+Ny=1},
+\qquad a^{-1}\equiv x\pmod N.
+\]
+
+\sub{Extended Euclid table} Start $(r_0,s_0,t_0)=(a,1,0)$, $(r_1,s_1,t_1)=(b,0,1)$; for $q_i=\lfloor r_{i-1}/r_i\rfloor$,
+\[
+(r_{i+1},s_{i+1},t_{i+1})=(r_{i-1},s_{i-1},t_{i-1})-q_i(r_i,s_i,t_i).
+\]
+Last nonzero row $=(\gcd,x,y)$.
+
+\sub{Square-and-multiply} For bits of $e$ from MSB to LSB: initialize $r=1$; each bit do $r\leftarrow r^2\bmod n$; if bit $1$, $r\leftarrow ra\bmod n$. Computes $a^e\bmod n$ in $O(\log e)$.
+
+\sub{Euler totient} If $n=\prod p_i^{e_i}$,
+\[
+\boxed{\varphi(n)=n\prod_{p\mid n}(1-1/p)=\prod p_i^{e_i-1}(p_i-1)}.
+\]
+$\varphi(p)=p-1$; $\varphi(p^k)=p^{k-1}(p-1)$;
+$\boxed{\varphi(pq)=(p-1)(q-1)}$ for distinct primes;
+$\gcd(a,b)=1\Rightarrow\varphi(ab)=\varphi(a)\varphi(b)$.
+
+\sub{Fermat/Euler}
+\[
+\begin{aligned}
+p\text{ prime},\ p\nmid a&\Rightarrow a^{p-1}\equiv1\pmod p,\\
+\gcd(a,n)=1&\Rightarrow a^{\varphi(n)}\equiv1\pmod n.
+\end{aligned}
+\]
+Reduce exponents mod $p-1$/$\varphi(n)$ only for coprime base. $a^{n-1}\not\equiv1\pmod n\Rightarrow n$ composite (not conversely).
+
+\sub{CRT} Pairwise coprime $n_i$; $N=\prod n_i$, $N_i=N/n_i$, $u_i=N_i^{-1}\bmod n_i$:
+\[
+\boxed{x\equiv\sum_i a_iN_iu_i\pmod N}\quad\Longleftrightarrow\quad x\equiv a_i\pmod{n_i}.
+\]
+
+\sect{GROUPS AND ORDER}
+$\Z_n^+$ has order $n$; $\Z_n^*=\{a:\gcd(a,n)=1\}$ has order $\varphi(n)$. Identity is $0$ (additive), $1$ (multiplicative).
+\[
+\ord(g)=\min\{r>0:g^r=e\},\qquad
+\boxed{\ord(g)\mid|G|}.
+\]
+\[
+\begin{aligned}
+\ord_{\Z_n^+}(a)&=n/\gcd(a,n),\\
+\ord(g^k)&=\ord(g)/\gcd(\ord(g),k).
+\end{aligned}
+\]
+Cyclic $|G|=N$: $\varphi(N)$ generators; $\varphi(d)$ elements of order $d\mid N$. If $|G|=q$ prime, every $g\ne e$ has order $q$.
+
+\sub{Find $\ord(g)$} Factor $N$ (usually $p-1$/$\varphi(n)$); $r\leftarrow N$. For each prime $\ell\mid r$, while $g^{r/\ell}=e$, set $r\leftarrow r/\ell$. Return $r$.
+
+\sub{Generator test} If prime divisors of $N=|G|$ are $\ell_i$,
+\[
+\boxed{g\text{ generates }G\iff g^{N/\ell_i}\ne e\ \forall i}.
+\]
+
+\sect{PRIMES / MILLER--RABIN}
+$\pi(x)\sim x/\ln x$; density near $x$: $1/\ln x$ (or $2/\ln x$ among odd candidates).
+
+\sub{One round} For odd $n>2$, write $\boxed{n-1=2^sd}$ with $d$ odd. Choose $2\le a\le n-2$.
+
+$\gcd(a,n)>1\Rightarrow\BAD$. Otherwise $x\leftarrow a^d\bmod n$.
+If $x\in\{1,n-1\}\Rightarrow\OK$. Repeat $s-1$ times:
+$x\leftarrow x^2\bmod n$; if $x=n-1\Rightarrow\OK$. If never reached, $\BAD$.
+
+Sequence: $a^d,a^{2d},\ldots,a^{2^{s-1}d}$. $\BAD$ is certain; $\OK$ = probable prime. Fixed odd composite $n$:
+\[
+\boxed{\Pr[\text{all }t\text{ rounds pass}]\le4^{-t}=2^{-2t}}.
+\]
+$k$-bit prime: sample $[2^{k-1},2^k)$; force MSB/LSB $1$; small-prime trial division; independent MR rounds.
+
+\sect{SECURITY / SYMMETRIC CRYPTO}
+\sub{Correctness} $\Pr[\Dec_k(\Enc_k(m))=m]=1$.
+
+\sub{Perfect secrecy} $\Pr[M=m\mid C=c]=\Pr[M=m]$; equivalently ciphertext distribution is message-independent.
+
+\sub{Advantage} $\boxed{\Adv_{\mathcal A}=|\Pr[b'=b]-1/2|}$.
+$\mu$ negligible iff $\forall c>0$, eventually $\mu(\lambda)<\lambda^{-c}$. $2^{-\lambda}$: yes; $\lambda^{-100}$: no.
+
+\sub{PRG} $G:\{0,1\}^\lambda\to\{0,1\}^{\ell(\lambda)}$, $\ell>\lambda$;
+$|\Pr[D(G(s))=1]-\Pr[D(U_\ell)=1]|\le\negl(\lambda)$.
+Hybrid bound: $|P(H_0)-P(H_t)|\le\sum_i|P(H_i)-P(H_{i+1})|$.
+
+\sub{PRF/PRP} PRF resembles random function (collisions possible); PRP is keyed bijection $\{0,1\}^n\to\{0,1\}^n$ (block cipher).
+
+\sub{EAV/CPA} EAV: challenge only. CPA: adaptive $\Enc_k(\cdot)$ queries. Deterministic $\Rightarrow$ not CPA. CPA $\not\Rightarrow$ integrity.
+
+\sub{OTP/stream} $c=m\oplus z$, $m=c\oplus z$. OTP: $z=k$ uniform/secret, $|k|\ge|m|$, one use. Reuse:
+$\boxed{c\oplus c'=m\oplus m'}$.
+
+\sub{Feistel}
+\[
+\begin{aligned}
+L_i&=R_{i-1},& R_i&=L_{i-1}\oplus F_i(R_{i-1});\\
+R_{i-1}&=L_i,& L_{i-1}&=R_i\oplus F_i(L_i).
+\end{aligned}
+\]
+$F_i$ need not invert; reverse subkeys.
+
+\sub{AES} Block 128. Key/rounds: 128/10, 192/12, 256/14. Round: SB$\to$SR$\to$MC$\to$ARK; initial ARK; final omits MC. In $GF(2^m)$: add$=$XOR; multiply polynomials mod irreducible $f$. AES: $x^8+x^4+x^3+x+1$; GCM: $x^{128}+x^7+x^2+x+1$.
+
+\sub{DES/3DES} DES: block 64, key 56, 16-round Feistel. 3DES-EDE: $c=E_{k_3}(D_{k_2}(E_{k_1}(m)))$; about 112-bit classical security.
+
+\sub{ECB} $c_i=E_k(m_i)$: deterministic, leaks equal blocks.
+
+\sub{CBC} fresh unpredictable IV; padding required:
+\[
+\boxed{c_0=IV,\ c_i=E_k(m_i\oplus c_{i-1}),\ m_i=D_k(c_i)\oplus c_{i-1}}.
+\]
+Flip in $c_i$: garbles $m_i$, predictably flips same bit in $m_{i+1}$. No authentication.
+
+\sub{CTR} unique nonce per key; no padding:
+\[
+\boxed{z_i=E_k(N\|\langle i\rangle),\quad c_i=m_i\oplus z_i}.
+\]
+Nonce reuse repeats keystream; ciphertext bit flip $=$ plaintext bit flip.
+
+\sub{GCM = CTR + GHASH (AEAD)}
+\[
+H=E_k(0^{128}),\quad
+\boxed{T=\MSB_t(E_k(J_0)\oplus\GHASH_H(A,C))}.
+\]
+Unique nonce; reuse breaks C+I. Verify tag before releasing plaintext.
+
+\columnbreak
+\sect{RSA}
+\sub{Keygen} distinct primes $p,q$:
+\[
+\begin{gathered}
+n=pq,\quad \varphi(n)=(p-1)(q-1),\\
+\gcd(e,\varphi(n))=1,\qquad
+\boxed{d=e^{-1}\bmod\varphi(n)}.
+\end{gathered}
+\]
+$\mathrm{pk}=(n,e)$; $\mathrm{sk}=(n,d)$ (store $p,q$ for CRT).
+\[
+\boxed{\Enc_{\mathrm{pk}}(m)=m^e\bmod n,\qquad
+\Dec_{\mathrm{sk}}(c)=c^d\bmod n}.
+\]
+If $\gcd(m,n)=1$: $ed=1+t\varphi(n)\Rightarrow m^{ed}=m(m^{\varphi(n)})^t\equiv m$. Otherwise prove mod $p,q$, then CRT; still correct, but $\gcd(m,n)>1$ reveals a factor.
+
+\sub{CRT decryption}
+$d_p=d\bmod(p-1)$, $d_q=d\bmod(q-1)$;
+$m_p=c^{d_p}\bmod p$, $m_q=c^{d_q}\bmod q$; recombine by CRT.
+
+\sub{Factor from $\varphi(n)$} Let $S=n-\varphi(n)+1=p+q$:
+\[
+\boxed{p,q=(S\pm\sqrt{S^2-4n})/2}.
+\]
+\sub{Textbook RSA fails} deterministic; $\Enc(m_1)\Enc(m_2)\equiv\Enc(m_1m_2)\pmod n$. Use OAEP/PSS. OAEP: $X=M\oplus G(r)$, $Y=r\oplus H(X)$; undo $r=Y\oplus H(X)$, $M=X\oplus G(r)$.
+
+\sect{DH / ELGAMAL / HARD PROBLEMS}
+In $G=\langle g\rangle$, $|G|=q$:
+\sub{DH} $A=g^a$, $B=g^b$,
+$\boxed{K=B^a=A^b=g^{ab}}$; use KDF. No authentication $\Rightarrow$ MITM.
+
+\sub{DLP/CDH/DDH} DLP: $g,g^x\mapsto x$; CDH: $g^a,g^b\mapsto g^{ab}$; DDH: distinguish $(g^a,g^b,g^{ab})$ from $(g^a,g^b,g^c)$. DLP$\Rightarrow$CDH$\Rightarrow$DDH (not converse generally).
+
+\sub{ElGamal encryption} Secret $x$, public $h=g^x$. Fresh $y$:
+\[
+\boxed{(c_1,c_2)=(g^y,mh^y)},\qquad
+\boxed{m=c_2(c_1^x)^{-1}}.
+\]
+Reuse $y$: $c_2/c_2'=m/m'$.
+
+\sub{Safe prime} $p=2q+1$ primes; quadratic residues form order-$q$ subgroup. $c=b^2\not\equiv1\pmod p\Rightarrow\ord(c)=q$.
+
+\sub{Attack costs} DLP brute force $O(q)$; BSGS $O(\sqrt q)$ time/memory; rho-DLP $O(\sqrt q)$ time/$O(1)$ memory; rho-factor $O(\sqrt p)$, $p$ smallest factor; Index Calculus subexp. in $\Z_p^*$, not ECC.
+
+\sub{Pollard-rho factoring}
+$f(x)=x^2+c\bmod n$; $x\leftarrow f(x)$, $y\leftarrow f(f(y))$; $d=\gcd(|x-y|,n)$. $d=1$: continue; $1<d<n$: factor; $d=n$: restart.
+
+\sub{Pollard-rho DLP} Collision $g^{a_i}h^{b_i}=g^{a_j}h^{b_j}$, $h=g^x$:
+\[
+\boxed{x=(a_j-a_i)(b_i-b_j)^{-1}\bmod q}.
+\]
+
+\sect{ELLIPTIC CURVES}
+$E:y^2=x^3+ax+b\pmod p$; require $4a^3+27b^2\not\equiv0\pmod p$. For $P=(x_1,y_1)$, $Q=(x_2,y_2)$:
+\[
+\lambda=\begin{cases}(y_2-y_1)(x_2-x_1)^{-1},&P\ne\pm Q,\\(3x_1^2+a)(2y_1)^{-1},&P=Q,\end{cases}\pmod p
+\]
+\[
+\boxed{x_3=\lambda^2-x_1-x_2,\qquad y_3=\lambda(x_1-x_3)-y_1}\pmod p.
+\]
+$P+\mathcal O=P$; $-P=(x,-y)$; $P+(-P)=\mathcal O$.
+EC keys: $\boxed{\mathrm{sk}=x,\ \mathrm{pk}=Q=xP}$.
+ECDLP: $P,Q=xP\mapsto x$; generic cost $O(\sqrt q)$ for $\ord(P)=q$.
+
+\sect{HASHES / BIRTHDAY / MAC}
+$H:\{0,1\}^*\to\{0,1\}^n$. Generic work: preimage $2^n$; second preimage $2^n$; collision $2^{n/2}$.
+
+\sub{Birthday} For $q$ uniform draws from $N$ values:
+\[
+\begin{aligned}
+P_{\rm coll}&=1-\prod_{i=0}^{q-1}(1-i/N)\\
+&\approx1-e^{-q(q-1)/(2N)},\\
+P_{\rm coll}=1/2&\Rightarrow\boxed{q\approx1.177\sqrt N}.
+\end{aligned}
+\]
+$n$-bit hash $\Rightarrow\le n/2$ collision-security bits.
+
+\sub{HMAC}
+\[
+\boxed{\HMAC_K(m)=H((K'\oplus opad)\|H((K'\oplus ipad)\|m))}.
+\]
+$H(k\|m)$ may length-extend. Basic CBC-MAC: fixed length only; variable $\Rightarrow$ CMAC. Hash alone $\ne$ authentication.
+
+\sect{DIGITAL SIGNATURES}
+\sub{RSA textbook (unsafe)} $\sigma=m^d\bmod n$; verify $\sigma^e\equiv m\pmod n$. Forge: choose $\sigma$, set $m=\sigma^e\bmod n$. Use PSS.
+
+\sub{ElGamal signature} $p$ prime; $g$ generator; secret $x$, public $y=g^x\bmod p$. Choose secret fresh $k$ with $\gcd(k,p-1)=1$:
+\[
+\begin{gathered}
+\boxed{r=g^k\bmod p},\\
+\boxed{s=k^{-1}(H(m)-xr)\bmod(p-1)},\\
+\boxed{g^{H(m)}\stackrel?\equiv y^rr^s\pmod p}.
+\end{gathered}
+\]
+$r$: mod $p$; $s$: mod $p-1$.
+
+\sub{DSA} $q\mid(p-1)$ prime; $\ord(g)=q$ mod $p$; secret $x\in\Z_q^*$, public $y=g^x\bmod p$. Fresh secret $k\in\Z_q^*$:
+\[
+\boxed{r=(g^k\bmod p)\bmod q,\qquad s=k^{-1}(H(m)+xr)\bmod q}.
+\]
+Retry if $r=0$ or $s=0$. Verify
+\[
+w=s^{-1}\bmod q,\quad u_1=H(m)w\bmod q,\quad u_2=rw\bmod q,
+\]
+\[
+\boxed{v=(g^{u_1}y^{u_2}\bmod p)\bmod q\stackrel?=r}.
+\]
+Exponentiation: mod $p$; $r,s,w,u_1,u_2,v$: mod $q$.
+
+\sub{Repeated DSA nonce recovers key}
+Let $h_i=H(m_i)$. Then
+\[
+\begin{aligned}
+k&=(h_1-h_2)(s_1-s_2)^{-1}\bmod q,\\
+x&=(s_1k-h_1)r^{-1}\bmod q.
+\end{aligned}
+\]
+ECDSA: $g^k\mapsto kG$. ElGamal/DSA/ECDSA nonce: secret, unpredictable, never reused.
+
+\sect{10-SECOND ERROR CHECK}
+Inverse exists? $\gcd=1$. Order divides group size. Fermat/Euler base coprime. MR uses $n-1=2^sd$ with $d$ odd. RSA uses $d=e^{-1}\bmod\varphi(n)$. CBC: unpredictable IV; CTR/GCM: unique nonce. Validate group/subgroup membership. ElGamal signature: mod $p-1$; DSA: mod $q$. Hash $\ne$ authentication; unauthenticated encryption is malleable.
+
+\end{multicols}
+\end{document}

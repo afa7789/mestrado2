@@ -1,0 +1,478 @@
+                                                                      paradigm imposes significant friction on users, who are
+  ZKVault: A Privacy-Preserving                                       required to submit identical sets of personal documents to each
+ Decentralized KYC System Using                                       service     provider independently, resulting in redundant
+                                                                      verification cycles, prolonged onboarding timelines, and
+     Zero-Knowledge Proofs                                            customer      dissatisfaction. The absence of standardized
+     Balram Panigrahi¹, Lakshmi Rai², Mansi Kodag³,                   interoperability between institutional identity databases
+                      Sheeba P.S.4                                    exacerbates this inefficiency, creating data silos that hinder
+   1234
+          Department of Computer Engineering, Lokmanya Tilak
+                                                                      streamlined regulatory compliance and cross-border financial
+                College of Engineering, Navi Mumbai                   access.
+
+    Email:panigrahibalram16@gmail.com,[lakshmi.rai_2022                           Privacy-enhancing technologies, particularly zero
+       @ltce.in, mansi.kodag_2022, sheebaps]@ltce.in                     knowledge proofs (ZKPs), have emerged as powerful
+                                                                         cryptographic tools that enable the proof of a statement's
+Abstract—ZKVault is a privacy-preserving decentralized
+                                                                         truth without divulging any information beyond the
+KYC system aimed at eliminating redundant identity
+                                                                         statement itself. First formalized by Goldwasser, Micali,
+verification and reducing the risks associated with centralized
+                                                                         and Rackoff in their seminal 1985 work, ZKPs have
+data storage. The project leverages zero-knowledge proofs and
+                                                                         undergone substantial theoretical and engineering
+blockchain technology to enable users to prove specific identity
+                                                                         refinement, culminating in practical constructions such as
+attributes without exposing sensitive personal information. It
+                                                                         zk-SNARKs and zk-STARKs that are increasingly
+ensures secure, tamper-proof, and reusable verification across
+                                                                         deployed      in     production      blockchain      systems.
+multiple platforms while maintaining user privacy and
+                                                                         Simultaneously, the maturation of public blockchain
+regulatory compliance. Experimental results demonstrate
+                                                                         platforms, decentralized storage protocols, and smart
+efficient performance, with proof generation taking
+                                                                         contract capabilities has created the technical substrate
+approximately 1.8 seconds and verification under 50
+                                                                         necessary for constructing decentralized identity solutions
+milliseconds, making ZKVault a scalable and practical
+                                                                         that operate without reliance on centralized authorities.
+alternative to traditional KYC systems.
+                                                                                   This paper introduces ZKVault, a comprehensive
+Index Terms—Zero-Knowledge Proofs, KYC, Blockchain,
+                                                                         privacy-preserving decentralized KYC system that
+zk-SNARKs, Decentralized Identity, Privacy Preservation,
+                                                                         synthesizes zero-knowledge proof techniques with
+Ethereum, IPFS, Self-Sovereign Identity, Cryptographic
+                                                                         blockchain infrastructure and decentralized storage to
+Protocols.
+                                                                         address the fundamental inadequacies of existing
+                                                                         approaches. ZKVault realizes the principle of selective
+                                                                         disclosure, allowing users to prove specific attributes
+I. INTRODUCTION
+                                                                         relevant to a KYC check, such as age above a threshold or
+The digital transformation of financial services, healthcare,            nationality, without exposing the totality of their identity
+and government infrastructure has accelerated the need for               profile. The system establishes a tripartite trust model
+robust, scalable, and trustworthy identity             verification      involving identity issuers, identity holders, and verifiers,
+mechanisms. Know Your Customer (KYC)                     protocols,      underpinned by cryptographically enforced role boundaries
+originally conceived as regulatory mandates to curb money                and     transparent    on-chain    credential    revocation
+laundering and terrorist financing, have             evolved into        mechanisms.
+ubiquitous gatekeeping mechanisms across industries ranging
+                                                                                  The contributions of this paper are as follows: [1]
+from banking and insurance to telecommunications and
+                                                                         a novel system architecture for privacy-preserving
+e-commerce. The Anti-Money Laundering (AML) directives
+                                                                         decentralized KYC that integrates zk-SNARKs, blockchain
+of the European Union and the Bank Secrecy Act in the United
+                                                                         smart contracts, and IPFS; [2]) a formal cryptographic
+States impose stringent obligations on regulated entities to
+                                                                         protocol specification for credential issuance, proof
+authenticate the       identities of their customers before
+                                                                         generation, and verification; [3] a Solidity-based smart
+onboarding, requiring the collection, storage, and periodic
+                                                                         contract implementation with gas efficiency analysis; [4]
+updating of sensitive personal documents such as passports,
+                                                                         experimental evaluation demonstrating the system's
+national identification cards, utility bills, and biometric data.
+                                                                         performance characteristics and scalability; and [5] a
+Despite their widespread adoption, contemporary           KYC            comparative assessment positioning ZKVault against
+systems suffer from a confluence of systemic vulnerabilities.            related academic and industrial solutions. The remainder of
+Centralized identity repositories present high-value targets for         this paper is organized as follows: Section II reviews
+malicious actors; breaches at financial institutions such as             relevant literature; Section III describes the system
+Equifax in 2017, exposing over 147 million records, serve as             architecture; Section IV details the methodology and
+sobering reminders of the catastrophic consequences of                   cryptographic protocol; Section V covers the
+consolidated personal data storage. Furthermore, the current             implementation; Section VI presents and discusses
+   experimental results; and Section VII concludes the paper.     proofs at scale. Hyperledger AnonCreds, stemming from
+                                                                  the Idemix lineage, provides verifiable credentials with
+                                                                  privacy-preserving presentation capabilities. Semaphore
+                                                                  and Tornado Cash (prior to regulatory action) illustrated
+II. RELATED WORK
+                                                                  specific deployment patterns of zk-SNARKs on Ethereum
+A. Decentralized Identity Systems                                 for privacy-preserving       attestation and transaction
+          The concept of self-sovereign identity (SSI) has        anonymization respectively. The Polygon ID project
+catalyzed a substantial body of research aimed at returning       integrates zk-SNARKs with decentralized identifiers for
+control of personal identity data to individuals. Allen (2016)    privacy-preserving identity verification on the Polygon
+articulated the foundational principles of SSI, emphasizing       blockchain, representing the closest industrial analog to
+user control, portability, and the minimization of reliance on    ZKVault.
+centralized authorities. The W3C Decentralized Identifiers        C. Blockchain-Based KYC Frameworks
+(DIDs) specification provides a standardized framework for
+                                                                           Several research efforts have explored the
+creating and managing decentralized identifiers anchored to
+                                                                  application of blockchain technology specifically to KYC
+blockchain or other distributed ledger technologies. Sovrin,
+                                                                  processes. Garg et al. (2020) proposed a consortium
+built atop the Hyperledger Indy permissioned blockchain,
+                                                                  blockchain-based KYC system for banking institutions,
+represents one of the most mature SSI implementations,
+                                                                  demonstrating reduced redundancy through shared KYC
+offering verifiable credentials issued by trusted entities.
+                                                                  records among member banks while maintaining access
+However, Sovrin and similar systems predominantly rely on
+                                                                  controls via smart contracts. Agarwal and Bansal (2021)
+credential presentation without zero knowledge proof
+                                                                  examined the feasibility of deploying KYC systems on
+mechanisms, meaning that verifiers receive the full credential
+                                                                  permissioned Ethereum networks, finding significant
+data rather than mere attestations of attribute validity.
+                                                                  reductions in KYC processing time. Bhatt and Singh (2022)
+          uPort, developed by ConsenSys, offers an
+                                                                  introduced a decentralized KYC architecture leveraging
+Ethereum-based decentralized identity platform that enables
+                                                                  IPFS for document storage and Ethereum for consent
+users to create and manage identity claims anchored to the
+                                                                  management, though their system did not incorporate zero
+Ethereum blockchain. Rebooting the Web of Trust workshops
+                                                                  knowledge proofs and thus transmitted user credentials in
+have generated numerous position papers and specifications
+                                                                  plaintext to verifiers. The ZKVault framework builds upon
+contributing to the standardization of verifiable credentials
+                                                                  these contributions by introducing cryptographic privacy
+and decentralized identifiers. Jolocom similarly provides a
+                                                                  guarantees absent in prior blockchain KYC proposals.
+framework for managing identity data through decentralized
+key management and verifiable credentials. While these            III. SYSTEM ARCHITECTURE
+systems advance the state of the art in decentralized identity
+management, they do not natively incorporate zero-knowledge       The ZKVault system is designed around a layered
+                                                                  architecture comprising four principal strata: the User
+proof-based selective disclosure, leaving a gap that ZKVault
+                                                                  Layer, the Issuer Layer, the Blockchain and Smart Contract
+aims to fill.
+                                                                  Layer, and the Storage Layer. These layers interact through
+B. Zero-Knowledge Proofs in Identity Verification The             well-defined cryptographic protocols and on-chain
+application of zero-knowledge proofs to identity verification     interfaces, ensuring that at no point in the verification
+has received growing scholarly attention. Camenisch and           lifecycle is raw personal information transmitted to a
+Lysyanskaya (2001) introduced anonymous credential systems        verifying party. The architecture adheres to the principle of
+enabling users to prove possession of credentials with            data minimization and provides cryptographic assurance of
+selective attribute disclosure, laying theoretical groundwork     attribute claims without sacrificing the ability to audit
+for subsequent ZKP-based identity schemes. Derived from           compliance at the systemic level.
+their work, the Idemix anonymous credential system, adopted
+                                                                  A. User Layer
+by Hyperledger         Fabric, provides a production-grade
+implementation of attribute-based credentials with ZKP-based                The User Layer encompasses the identity holder's
+selective disclosure. Bernabe et al. (2019) surveyed privacy      client-side application, responsible for key management,
+preserving      authentication    mechanisms,      categorizing   credential storage, proof generation, and communication
+approaches by their underlying cryptographic primitives and       with both issuers and verifiers. Each user generates an
+privacy guarantees.                                               asymmetric cryptographic key pair during onboarding,
+                                                                  deriving their decentralized identifier (DID) from the
+  More recently, the widespread deployment of zk SNARKs in
+                                                                  public key. The private key is stored exclusively on the
+   blockchain ecosystems, particularly through the Groth16
+                                                                  user's device using hardware-backed secure enclave
+   proof system used in Zcash and the PLONK proof system
+                                                                  mechanisms where available, ensuring that no centralized
+   gaining adoption in Ethereum Layer-2 solutions, has
+                                                                  party possesses the user's cryptographic secrets. The client
+   demonstrated the practical viability of zero knowledge
+                                                                  application implements the zk-SNARK proving engine,
+   enabling the generation of zero-knowledge proofs locally        ZKVault proof circuit. Upon receiving a proof and public
+   on the user's device without any sensitive data leaving the     inputs from a user, the Verifier Contract executes the
+   client environment.                                             elliptic curve pairing operations necessary for proof
+User-facing interactions include the ability to request            validation entirely on-chain, emitting a verification event
+credentials from trusted issuers, view and manage the              that verifying institutions can monitor. The use of
+credential wallet, selectively generate proofs for specific        on-chain verification eliminates the need for verifiers to
+attribute claims in response to verifier challenges, and           implement cryptographic verification logic independently,
+monitor the revocation status of issued credentials. The client    significantly reducing integration complexity.
+application communicates with the Ethereum blockchain via          D. Storage Layer
+standard JSON-RPC interfaces, querying smart contracts for
+                                                                             The Storage Layer employs the InterPlanetary
+issuer registry information and credential revocation status.
+                                                                   File System (IPFS) for decentralized storage of encrypted
+B. Issuer Layer                                                    credential documents. Encrypted credential bundles,
+          The Issuer Layer consists of trusted identity issuers    comprising the user's identity attributes and supporting
+such as government identity authorities, licensed financial        document hashes, are stored on IPFS nodes operated by
+institutions, and accredited certification bodies. Issuers are     participating institutions and network volunteers. The
+registered in the ZKVault Issuer Registry smart contract,          content addressing mechanism of IPFS ensures data
+which records their public keys and attestations of                integrity, as any tampering with stored data would
+trustworthiness. During credential issuance, an issuer collects    invalidate the content identifier. Access to stored
+and validates a user's identity documents through                  credentials is controlled through hybrid encryption using
+conventional verification channels, computes a cryptographic       AES-256-GCM for data encryption and RSA-OAEP for
+commitment over the attribute set, and issues a signed             key encapsulation, with the decryption key accessible only
+credential object containing the attribute values and their hash   to the credential holder. The separation of storage from the
+commitments. The credential signature            employs BLS       blockchain reduces on-chain storage costs while
+(Boneh-Lynn-Shacham) signature schemes that are efficiently        preserving the tamper-evident properties essential for
+verifiable within zk-SNARK circuits.                               credential integrity assurance.
+
+Critically, the issuer does not transmit raw credential data to    IV. METHODOLOGY
+any blockchain; instead, only the cryptographic commitment
+                                                                   A. Cryptographic Protocol Design
+hash and credential metadata are anchored on-chain. The full
+credential, encrypted under the user's public key, is stored on              The ZKVault cryptographic protocol is
+IPFS, with the content identifier (CID) recorded in the smart      grounded in the zk-SNARK instantiation of the
+contract under the user's DID. This design ensures that issuers    Groth16 proof system, which provides succinct
+cannot unilaterally revoke access to a user's credential data      proof sizes (128 bytes independent of circuit size)
+after issuance, while still providing on-chain revocation          and fast verification times, properties critical for
+mechanisms that verifiers can consult.                             on-chain deployment. The protocol operates over the
+                                                                   BN254 (also known as alt_bn128) elliptic curve
+C. Blockchain and Smart Contract Layer                             pairing-friendly curve, which is natively supported
+The Blockchain Layer is built upon an Ethereum compatible          by Ethereum's EIP-196 and EIP-197 precompiled
+public blockchain, chosen for its broad ecosystem support,         contracts. The KYC attribute circuit is implemented
+mature smart contract tooling, and alignment with emerging         using the circom 2.0 circuit description language and
+EVM-compatible Layer-2 scalability solutions. The layer            the snarkjs library,        generating proving and
+encompasses three core smart contracts: the Issuer Registry        verification keys through a multi party computation
+Contract, the Credential Registry Contract, and the Verifier       (MPC) trusted setup ceremony to eliminate
+Contract. The Issuer Registry Contract maintains a mapping         single-point-of-failure security assumptions.
+of authorized issuer addresses, their public keys, and trust
+                                                                             The core proving circuit encodes the following
+levels, permitting    only governance-approved entities to
+                                                                   KYC compliance predicates: [1] attribute membership,
+register as issuers. The Credential Registry Contract records
+                                                                   verifying that a claimed attribute value is contained in the
+commitment hashes corresponding to user credentials, linking
+                                                                   set of valid values certified by the issuer; [2] range proofs,
+them to the user's DID, the issuing authority's identifier, the
+                                                                   confirming that numeric attributes such as age or credit
+issuance timestamp, and revocation status flags.
+                                                                   score fall within specified bounds without disclosing the
+              The Verifier Contract is responsible for on-chain    exact value; [3] credential freshness, establishing that the
+    verification of zk-SNARK proofs submitted by users             credential's issuance date falls within an acceptable
+    during     the KYC attestation process. The contract           validity window; and [4] issuer authorization, proving
+    incorporates a Groth16 verifier implementation generated       that the credential was signed by a registered issuer
+    through the trusted setup ceremony conducted for the           without disclosing the issuer's identity. These predicates
+    are    encoded as rank-1 constraint system (R1CS)
+    constraints and compiled into an arithmetic circuit with
+    approximately 2.3 million constraints for a standardKYC.
+
+B. Proof Generation and Verification Flow                                  Table 2: Software Requirements
+
+          The proof generation and verification flow                   Category                  Tools / Technologies
+proceeds through the following sequence of steps. In the
+credential request phase, the user submits a credential                Operating                Windows 10 / Ubuntu
+request to a designated issuer, providing raw identity                 System               20.04 / macOS
+documents through a secure off-chain channel. The issuer
+performs identity verification using conventional KYC                  Frontend                  React.js + Next.js
+procedures, then constructs the credential object containing           Framework
+structured attribute data, a Pedersen commitment over the
+attribute vector using randomness sampled from a                       Backend                  Node.js (Express.js
+                                                                       Environment          framework)
+cryptographically secure pseudorandom number generator,
+and the issuer's BLS signature over the commitment hash.
+The completed credential is encrypted and uploaded to                  Blockchain               Solidity, Hardhat,
+                                                                       Tools                Metamask, Ethereum Testnet
+IPFS, and the commitment hash is anchored to the
+Credential Registry smart contract.
+                                                                       ZKP                       Circom, SnarkJS, Noir
+In the verification request phase, a verifier sends a challenge
+                                                                       Frameworks
+to the user specifying the required KYC predicates and a
+unique nonce to prevent proof replay attacks. The user's               Database /                Firebase / Cloudflare R2
+client application retrieves the encrypted credential from             Storage              (encrypted storage)
+IPFS, decrypts it using the locally stored key, and
+instantiates the zk-SNARK proving circuit with              the        Encryption               AES-256 client-side
+credential's attribute values as private witnesses and the                                  encryption
+required predicates as public inputs. The circom circuit is
+evaluated to generate the proof, which is subsequently                 Version                   GitHub / Git
+submitted to the Verifier Contract along with the public               Control
+inputs. The contract performs on-chain verification and
+                                                                       IDE / Editors              VS Code, Remix IDE
+emits a KYCVerified event, which the verifying institution                                  (for smart contracts)
+monitors to confirm compliance.
+   Table 1: Hardware Requirements                                 C. Revocation Mechanism
+          Component                   Specification                    The ZKVault revocation mechanism employs a sparse
+                                                                  Merkle tree- based accumulator committed on-chain.
+        Processor                 Intel Core i5 or higher         Revoked credential identifiers are inserted into the
+                                                                  accumulator by the issuing authority, updating the Merkle
+          RAM                   Minimum 8 GB (16 GB               root stored in the smart contract. The KYC proof circuit
+                           recommended for development)           incorporates a non-membership proof demonstrating that the
+                                                                  user's credential identifier is absent from the revocation
+         Storage                 At least 5 GB free space         accumulator at the time of proof generation.
+
+          GPU                     Optional – required only              Verifiers supply the current on-chain accumulator root
+                              for advanced cryptographic          as a public input to the proof, ensuring that proofs
+                                ZKP circuit generation            generated against a stale revocation state are automatically
+                                                                  invalidated upon chain verification. This mechanism
+  Internet Connection              Stable broadband for           supports efficient revocation without requiring periodic
+                               Ethereum testnet access            re-issuance of credentials or communication of revocation
+                                                                  lists to users.
+                                                                within a single transaction, reducing per-credential gas
+                                                                costs through shared transaction overhead.
+V. IMPLEMENTATION                                                         The Verifier Contract is generated by the snarkjs
+                                                                contract generation utility and implements the Groth16
+A. Circuit and Proof System Implementation The ZKVault
+                                                                verification algorithm using Ethereum's native EIP-196
+proof circuits are implemented in          circom 2.0, a
+                                                                (elliptic curve point addition and scalar multiplication) and
+domain-specific language for arithmetic circuit description
+                                                                EIP-197 (elliptic curve pairing) precompiled contracts. A
+that compiles to R1CS format compatible with the snarkjs
+                                                                wrapper contract extending the generated verifier adds event
+prover library. The primary        KYC credential circuit
+                                                                emission, nonce tracking to prevent proof reuse, and
+comprises template modules for             Pedersen hash
+                                                                integration with the Credential Registry for revocation status
+computation, BLS signature verification adapted for use
+                                                                checks. Gas profiling across one hundred verification
+within an arithmetic circuit, range proof gates utilizing bit
+                                                                transactions on a Hardhat local node yielded a mean gas
+decomposition techniques, and sparse          Merkle tree
+                                                                consumption      of 312,450 units per verification,
+non-membership verification. The circuit is compiled
+                                                                corresponding to approximately $0.18 USD at a gas price of
+targeting the BN254 curve, yielding an R1CS file with
+                                                                20 Gwei and an ETH price of $2,800, suitable for
+2,347,812 constraints. The trusted setup ceremony for the
+                                                                production deployment on Ethereum Layer-2 networks such
+Groth16 instantiation was conducted using the Powers of
+                                                                as Polygon or Optimism where gas costs are orders of
+Tau ceremony artifacts from the Ethereum Foundation's
+                                                                magnitude lower.
+Hermez MPC ceremony, supplemented by a ZKVault
+specific phase 2 ceremony involving twelve independent          C. Client Application and IPFS Integration
+contributors.                                                            The ZKVault client application is implemented as a
+          The proving key occupies approximately 420 MB         React.js progressive web application integrated with the
+of storage and is distributed to client applications via a      MetaMask browser extension for Ethereum transaction
+content-addressed download mechanism. The verification          signing and key management. The IPFS integration employs
+key, comprising only 836 bytes, is hardcoded into the           the Helia JavaScript library to interface with IPFS nodes
+Verifier smart contract. The snarkjs WASM prover is             operated by ZKVault-affiliated infrastructure providers, with
+integrated into the client application as a Web Assembly        a fallback to public IPFS gateway services for read-only
+module, enabling in-browser proof generation without            access. Credential encryption employs the WebCrypto API
+native application installation. For resource-constrained       for AES-256-GCM operations, ensuring            compatibility
+environments, a native Rust prover using the bellman            across modern browsers without external cryptographic
+library is provided as an alternative, achieving                dependencies. The application exposes a credential wallet
+approximately 40 percent faster proof generation times          interface enabling users to view issued credentials, request
+relative to the WASM implementation.                            credential updates from issuers, and generate proofs in
+                                                                response to verifier requests through a QR code-based
+B. Smart Contract Implementation
+                                                                challenge-response mechanism suitable for mobile KYC
+           The smart contract suite is developed in Solidity    workflows.
+  0.8.21 and tested against the Hardhat development
+  framework with Waffle test utilities. The Issuer Registry
+  Contract implements an access-controlled mapping from
+  Ethereum addresses to IssuerRecord structs, each
+  containing the issuer's BLS public key in compressed G1
+  point representation, a trust tier enumeration, and an
+  issuance counter. The Credential Registry Contract
+  maintains a mapping from keccak256 hashes of user DID
+  strings to CredentialRecord arrays, recording the IPFS
+  CID, commitment hash, issuer address, and revocation
+  flag for each credential. Batch registration functions are             Figure 1: ZK Vault System Architecture
+  provided to enable issuers to anchor multiple credentials
+VI. RESULTS AND DISCUSSION                                      12 GB RAM), representing the spectrum of devices that
+A. Performance Evaluation                                       prospective users may employ. Proof generation time,
+          Performance evaluation of the ZKVault system          measured across 200 independent proof generation
+  was conducted across three hardware configurations: a         instances per hardware configuration, yielded mean times
+  high-end desktop computer (AMD Ryzen 9 5950X, 64 GB           of 1.82 seconds, 3.47 seconds, and 11.23 seconds for the
+  RAM), a mid-range laptop (Intel Core i7-1165G7, 16 GB         three configurations respectively. Proof verification time,
+  RAM), and a mobile device (Qualcomm Snapdragon 888,           executed on-chain via the Verifier Contract deployed to a
+  Hardhat local node simulating Ethereum mainnet                knowledge proof-based selective disclosure capabilities
+  conditions, consistently measured between 42 and 51           while additionally incorporating a revocation mechanism
+  milliseconds across all tested configurations, confirming     based on sparse Merkle tree accumulators and a more
+  the asymmetric nature of zk-SNARK systems in which            granular issuer trust tier system. Polygon ID's identity
+  verification is substantially faster than proving.            claims are anchored to a single proprietary blockchain
+          IPFS upload latency for credential bundles of         network, whereas ZKVault is designed to be blockchain
+average size 14.7 kilobytes averaged 287 milliseconds on        agnostic at the credential layer, with only the smart contract
+the ZKVault IPFS nodes, and retrieval latency averaged 193      component requiring EVM compatibility. Compared to
+milliseconds. End-to-end KYC verification flow time,            Hyperledger AnonCreds, ZKVault offers faster proof
+encompassing credential retrieval, proof generation,            generation owing to the efficiency of Groth16 relative to CL
+Ethereum transaction submission with a 12-second block          signature-based systems, though AnonCreds provides more
+confirmation target, and verification event receipt, averaged   mature standardization and tooling. Against centralized
+16.4 seconds on the high-end desktop and 26.1 seconds on        KYC platforms such as Jumio or Onfido, ZKVault
+the mobile device. These figures compare favorably with         eliminates the centralized data repository risk at the cost of
+reported average processing times for manual KYC reviews        higher technical integration complexity and dependence on
+in the financial industry, which range from several hours to    blockchain infrastructure availability.
+multiple days, and are competitive with automated                         The system's regulatory compliance posture is
+centralized KYC systems that typically operate in the 30 to     noteworthy: by ensuring that verifiers receive only
+120 second range while requiring data transmission to third     cryptographic attestations rather than raw personal data,
+party servers.                                                  ZKVault inherently satisfies the data minimization and
+                                                                purpose limitation principles enshrined in GDPR Article 5.
+B. Security Analysis
+                                                                The on-chain audit trail provided by credential anchoring
+          The security of ZKVault rests on the                  and verification events enables regulators to audit KYC
+computational hardness of the discrete logarithm problem        compliance without necessitating access to personal data
+on the BN254 elliptic curve, the soundness of the Groth16       repositories. These properties position ZKVault as a
+proof system under the generic group model, and the             technically sound and legally coherent framework for
+collision resistance of the Keccak-256 hash function. Under     privacy-preserving KYC in regulated environments, subject
+these assumptions, a malicious prover cannot generate a         to further legal analysis and regulatory guidance in specific
+valid proof for false KYC predicates without knowledge of       jurisdictions.
+a valid credential issued by a registered issuer, as doing so
+would require solving the underlying hard problem. The
+trusted setup ceremony conducted for the ZKVault circuit
+provides computational soundness guarantees conditional
+on at least one ceremony participant having deleted their
+toxic waste contribution, a requirement satisfied by the
+twelve-party ceremony structure. The on-chain revocation
+mechanism precludes the use of revoked credentials, as the
+non-membership proof must be computed against the
+current on-chain accumulator root.
+          Privacy guarantees follow from the zero                                      Figure 2: Homepage
+knowledge property of the Groth16 system, which ensures
+that the proof transcript reveals no information about the
+private witness beyond the truth of the asserted predicates.
+Importantly, ZKVault does not link multiple verification
+interactions to the same user identity on-chain, as each
+proof is bound only to the verifier's nonce and not to any
+persistent user identifier, preventing correlation attacks by
+on-chain observers. Sybil resistance is maintained through
+the issuer-signed credential structure, which prevents users
+from generating valid proofs without possessing a
+credential from a recognized issuer.                                               Figure 3: Dashboard
+C. Comparative Analysis
+          Compared to Polygon ID, the most closely related
+  existing system, ZKVault provides equivalent zero
+                                                                 VII. CONCLUSION
+
+
+         This paper has presented ZKVault, a privacy             Recommendation, Jul. 2022. [Online]. Available:
+preserving decentralized KYC system that harnesses the           https://www.w3.org/TR/did-core/
+                                                                 [6] W3C, "Verifiable Credentials Data Model v1.1," W3C
+cryptographic properties of zero-knowledge proofs, the                Recommendation, Mar. 2022. [Online]. Available:
+transparency and immutability of blockchain smart                     https://www.w3.org/TR/vc-data-model/
+contracts, and the decentralized storage capabilities of         [7] S. Garg, A. Jain, and P. Mukherjee, "Blockchain-based KYC
+IPFS to address the fundamental privacy and efficiency                for banking: A consortium approach," IEEE Transactions on
+deficiencies of conventional KYC infrastructure. The                  Network and Service Management, vol. 17, no. 4, pp. 2571–
+                                                                      2583, 2020.
+ZKVault architecture enables users to prove compliance
+                                                                 [8] A. Agarwal and R. Bansal, "Decentralized KYC on Ethereum
+with KYC requirements without revealing raw personal
+                                                                      permissioned networks," in Proc. IEEE International
+data, eliminating the need for repeated document                      Conference on Blockchain, Melbourne, Australia, 2021, pp.
+submission and centralized personal data repositories. The            432–440.
+experimental evaluation demonstrates that the system             [9] D. Bhatt and V. Singh, "A privacy-aware decentralized KYC
+achieves proof generation and verification performance                framework using IPFS and Ethereum," Journal of
+suitable for production deployment, particularly on high              Information Security and Applications, vol. 65, p. 103098,
+throughput Layer-2 blockchain networks.                               2022.
+                                                                 [10] J. Bernabe, J. Canovas, J. Hernandez-Ramos, R. Moreno,
+         The proposed framework advances the state of the             and     A. Skarmeta, "Privacy-preserving solutions for
+art in decentralized identity by combining zk-SNARK                   blockchain: Review and challenges," IEEE Access, vol. 7,
+based selective disclosure with a comprehensive revocation            pp. 164908– 164940, 2019.
+mechanism, a role-stratified issuer model, and regulatory        [11] E. Ben-Sasson, A. Chiesa, C. Garman, M. Green, I. Miers, E.
+compliance alignment with data protection frameworks                  Tromer, and M. Virza, "Zerocash: Decentralized anonymous
+                                                                      payments from Bitcoin," in Proc. IEEE Symposium on
+such as GDPR. The open-source implementation artifacts,               Security and Privacy, 2014, pp. 459–474.
+including the circom circuits, Solidity smart contracts, and     [12] Polygon, "Polygon ID: Decentralized and private identity for
+client application, contribute reusable components to the                 Web3," Technical Report, Polygon Labs, 2023.
+broader decentralized identity engineering community.            [13] Hyperledger Foundation, "AnonCreds Specification v1.0,"
+                                                                      Hyperledger Foundation, 2023. [Online]. Available:
+          Future work will explore the integration of post
+                                                                      https://hyperledger.github.io/anoncreds-spec/
+quantum cryptographic proof systems such as zk-STARKs
+                                                                  [14] J. Benet, "IPFS – Content Addressed, Versioned, P2P File
+to address long-term quantum threat considerations, the                   System," arXiv preprint arXiv:1407.3561, 2014.
+development of standardized credential schemas aligned           [15] European Parliament and Council, "General Data Protection
+with W3C Verifiable Credentials and DIF Presentation                  Regulation (GDPR)," Official Journal of the European
+Exchange specifications, and the empirical evaluation of              Union, vol. L 119, pp. 1–88, May 2016.
+ZKVault in pilot deployments with regulated financial            [16] D. Boneh, B. Lynn, and H. Shacham, "Short signatures from
+institutions. Additionally, investigation into the application        the Weil pairing," Journal of Cryptology, vol. 17, no. 4, pp.
+                                                                      297–319, 2004.
+of recursive proof composition techniques, such as Nova or
+Halo2, to aggregate multiple credential proofs within a          [17] Iden3, "circom: A circuit programming language for zero
+                                                                      knowledge proofs," GitHub Repository, 2023. [Online].
+single succinct proof will be pursued to further reduce on            Available: https://github.com/iden3/circom
+chain verification costs in multi-attribute KYC scenarios.       [18] FATF, "Guidance for a Risk-Based Approach to Virtual
+                                                                     Assets and Virtual Asset Service Providers," Financial
+REFERENCES                                                           Action Task Force, Paris, 2021.
+[1] S. Goldwasser, S. Micali, and C. Rackoff, "The knowledge
+     complexity of interactive proof systems," SIAM Journal on
+     Computing, vol. 18, no. 1, pp. 186–208, 1989.
+[2] J. Groth, "On the size of pairing-based non-interactive
+    arguments," in Advances in Cryptology – EUROCRYPT
+    2016, Springer, Berlin, 2016, pp. 305–326.
+ [3] J. Camenisch and A. Lysyanskaya, "An efficient system for
+non-transferable anonymous credentials with optional anonymity
+ revocation," in Advances in Cryptology – EUROCRYPT 2001,
+               Springer, Berlin, 2001, pp. 93–118.
+[4] C. Allen, "The path to self-sovereign identity," Life with
+     Alacrity Blog, Apr. 2016. [Online]. Available:
+     http://www.lifewithalacrity.com/2016/04/the-path-to-self
+     soverereign-identity.html
+[5] W3C, "Decentralized Identifiers (DIDs) v1.0," W3C
+

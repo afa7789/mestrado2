@@ -284,6 +284,33 @@
       "publication": "Preprint arXiv:2604.03900",
       "url": "https://arxiv.org/abs/2604.03900",
       "reading": "Resumo; serve como alerta de trabalho próximo, exige leitura completa antes de selecionar R5"
+    },
+    {
+      "id": "zk_private_tx_bsci25",
+      "title": "A Zero-Knowledge Proof-Based Protocol for Privacy-Preserving Transactions on Public Blockchains",
+      "publication": "BSCI '25 (ACM), DOI 10.1145/3709016.3737794",
+      "url": "https://doi.org/10.1145/3709016.3737794",
+      "local_pdf": "papers/zk-private-transactions-bsci25-2025.pdf",
+      "reading": "Leitura integral (txt local)",
+      "note": "Semente da rodada 23/09. ElGamal HQE + KZG + Groth16 em EVM; futuro: aceleração de hardware da geração de prova."
+    },
+    {
+      "id": "zkvault_kyc",
+      "title": "ZKVault: A Privacy-Preserving Decentralized KYC System Using Zero-Knowledge Proofs",
+      "publication": "IEEE/SSRN preprint, DOI 10.2139/ssrn.6602198",
+      "url": "https://doi.org/10.2139/ssrn.6602198",
+      "local_pdf": "papers/zkvault-kyc-2025.pdf",
+      "reading": "Leitura integral (txt local)",
+      "note": "Semente da rodada 23/09. Future work: pós-quântico (zk-STARKs), recursão Nova/Halo2, W3C VC/DIF, pilotos com instituições reguladas."
+    },
+    {
+      "id": "privacy_compliance_thesis",
+      "title": "Privacy-Preserving Compliance (Joss Duff, dissertação M.S. Lehigh University)",
+      "publication": "Lehigh University, maio 2026",
+      "url": "https://preserve.lehigh.edu/",
+      "local_pdf": "papers/privacy-compliance-thesis-2026.pdf",
+      "reading": "Extração parcial (texto só até pág. 8); cap. 7 Future Work mapeado por sumário",
+      "note": "Semente da rodada 23/09. Future work: DSL de restrições, backends de provadores, provas via mixers, latência, aceitação regulatória."
     }
   ]
 }

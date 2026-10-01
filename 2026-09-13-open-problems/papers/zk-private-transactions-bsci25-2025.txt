@@ -1,0 +1,556 @@
+A Zero-Knowledge Proof-Based Protocol for Privacy-Preserving
+            Transactions on Public Blockchains
+                   Hao Pham-Duc                                                      Khang Vo-Vi                               Khuong Nguyen-An∗
+      hao.pham1652003@hcmut.edu.vn                                         vovikhangcdv@gmail.com                            nakhuong@hcmut.edu.vn
+       HCMC University of Technology                                       Ho Chi Minh City, Vietnam                      HCMC University of Technology
+            (HCMUT), Vietnam                                                                                                    (HCMUT), Vietnam
+     Vietnam National University-HCMC,                                                                                  Vietnam National University-HCMC,
+                  Vietnam                                                                                                            Vietnam
+Abstract                                                                                        Symposium on Blockchain and Secure Critical Infrastructure (BSCI ’25). ACM,
+Public blockchains offer transparency and decentralization but also                             New York, NY, USA, 8 pages. https://doi.org/10.1145/3709016.3737794
+expose sensitive transaction data that compromise user privacy.
+This issue can be considered as a data breach if traditional financial                          1    INTRODUCTION
+systems attempt to migrate their infrastructures onto a public                                  Since the day Bitcoin was created by an anonymous entity named
+blockchain, creating a legal barrier to blockchain adoption in                                  Satoshi Nakamoto in 2009 [14], blockchain technology has become
+practical fields. Existing solutions often require restructuring                                a potential game-changer in finance, supply chains, and identity
+the blockchain architecture, relying on protocols with high                                     management. It eliminates the need for a trusted third party by
+communication and computation costs, or launching a separate                                    having a network of independent nodes verify data. However, public
+blockchain network, which can erode efficiency and undermine the                                blockchains must store transaction data transparently, including
+decentralization of blockchain. In this paper, we propose a protocol                            amounts, sender identities, and recipient addresses, raising privacy
+that allows users to carry out privacy-preserving transactions                                  concerns for traditional organizations. Many financial institutions
+on public blockchains. Our protocol leverages homomorphic                                       hesitate to adopt these systems due to fears of violating regulations,
+encryption to encrypt user balances and employs commitment                                      such as the General Data Protection Regulation (GDPR), which
+scheme to store the entire ledger on-chain compactly and efficiently.                           allows individuals to request data deletion (Article 17). GDPR’s
+By integrating succinct zero-knowledge proofs, we enable the                                    principle of “purpose limitation” also restricts data access to
+verification of state transitions (such as deposits, withdrawals,                               authorized parties, conflicting with blockchain’s transparency.
+and fund transfers) without disclosing confidential inputs such                                 Research shows that over two-thirds of blockchain projects fail
+as private keys, senders, receivers, or transaction amounts. We also                            to address GDPR compliance [3], creating significant barriers for
+present a concrete construction by selecting specific cryptographic                             industries transitioning from legacy systems to public blockchains.
+primitives and analyze its security to demonstrate privacy and                                     To address these privacy and compliance issues, we propose
+correctness. Finally, we conduct experiments on the proposed                                    a protocol that maintains transaction confidentiality on public
+construction, measuring its performance to show that it can achieve                             blockchains. It utilizes a minimal encrypted ledger for user balances,
+both efficiency and scalability on an EVM-based blockchain.                                     with its state root in the smart contract storage. State transitions use
+                                                                                                zero-knowledge proofs (ZKP) to keep sensitive data private. Our
+CCS Concepts                                                                                    protocol is generic, allowing for different cryptographic primitive
+• Security and privacy → Pseudonymity, anonymity and                                            settings. This work has three main contributions:
+untraceability; Privacy-preserving protocols.                                                       • We propose a privacy-preserving protocol using
+                                                                                                      homomorphic encryption, commitments, and zkSNARK to
+Keywords                                                                                              help users maintain privacy when interacting with public
+Blockchain, Privacy, Anonymity, Zero-Knowledge Proof                                                  blockchains.
+ACM Reference Format:                                                                               • We instantiate our protocol with a concrete, selective
+Hao Pham-Duc, Khang Vo-Vi, and Khuong Nguyen-An. 2025. A                                              choice of cryptographic primitives, including Exponential
+Zero-Knowledge Proof-Based Protocol for Privacy-Preserving Transactions                               ElGamal [1], KZG [11], and Groth16 [10].
+on Public Blockchains. In Proceedings of the 7th ACM International                                  • We benchmark our prototype in the EVM environment,
+∗ Corresponding author                                                                                demonstrating that while off-chain proof generation is
+                                                                                                      the main bottleneck, on-chain computational costs are
+Permission to make digital or hard copies of all or part of this work for personal or                 significantly lower than Aztec [19] and Tornado Cash [17].
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the              2    RELATED WORK
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission   One of the early methods to obscure on-chain transaction links
+and/or a fee. Request permissions from permissions@acm.org.                                     is CoinJoin, introduced by Maxwell [12]. This technique merges
+BSCI ’25, Hanoi, Vietnam                                                                        multiple inputs and outputs into a single transaction, making
+© 2025 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 979-8-4007-1412-2/2025/08                                                              it hard to determine which input corresponds to which output.
+https://doi.org/10.1145/3709016.3737794                                                         Another method involves ring signatures, developed by Rivest et
+BSCI ’25, August 25, 2025, Hanoi, Vietnam                                                        Hao Pham-Duc, Khang Vo-Vi, and Khuong Nguyen-An
+
+
+al. [18]. However, these techniques often require an additional                • Privacy: The protocol enables hiding transaction details,
+communication layer to gather mixing partners, making them                       including sender, receiver, and transferred amount.
+vulnerable to Sybil attacks [2] if an adversary creates multiple               • Recoverability: The protocol lets users share their balances
+addresses. Additionally, as noted by Maxwell, these methods can                  with others and revoke this permission at anytime.
+be susceptible to Denial of Service (DoS) attacks, such as refusing            • Integration: The smart contracts of our protocol should be
+to sign transactions or spending coins before completion [12].                   compatible with EVM-based blockchains.
+    A straightforward way to address issues with permissionlessness            • On-chain Efficiency: The protocol should minimize
+is to use permissioned blockchains, where only authorized parties                computation and storage costs on the chain.
+can access transaction data [7, 8]. Hyperledger Fabric [4] offers
+a framework for enterprises, requiring participants to register          3.2     Overview of Proposed Protocol
+through a trusted Membership Service Provider and supporting             Our protocol uses a minimal ledger to record user balances,
+private transactions that only share hashed or encrypted data            updated with each transaction. To safeguard these balances from
+with selected nodes. ZCash [5], a Bitcoin fork, incorporates             unauthorized access, we employ an additively homomorphic
+zero-knowledge proofs (ZKPs) to provide two types of addresses:          encryption scheme, allowing updates without decryption. Instead
+Transparent addresses (t-addresses), which lack privacy, and             of storing all records on the Blockchain, which is inefficient, we
+Shielded addresses (z-addresses), which encrypt transaction data         utilize a commitment scheme that compresses records into a
+while allowing verification by network. Transactions in ZCash can        single commitment stored in a smart contract. This approach still
+be categorized into four types based on privacy levels: Transparent      permits verification of individual records through opening proofs.
+transactions, Shielding transactions, Deshielding transactions, and         The smart contract holds all encrypted records reflecting the
+Shielded transactions. However, a drawback is that transaction data      current state of a state machine S, denoted as 𝜙. The state 𝜙 updates
+remains visible to a group of authorized miners, and transferring        with user actions such as deposits, withdrawals, fund transfers,
+assets from a public blockchain may require a bridge mechanism,          or key rotations. The state at time 𝑡 is represented as 𝜙𝑡 . At any
+introducing security risks.                                              given time, the state machine S can perform one of four actions to
+    Another approach involves using smart contracts on EVM-based         transition to a new state.
+public blockchains without client modifications. Tornado Cash [17]          - deposit: Invoked when a user registers a public key and deposits
+utilizes a Merkle Tree [13] for fixed-denomination ETH deposits,         funds, it adds a new encrypted balance entry to the ledger.
+where each leaf is a hashed secret. Withdrawers prove                       - withdraw: Invoked when a user withdraws funds, it
+knowledge of an unspent leaf’s preimage using ZKPs, specifically         homomorphically subtracts the amount from the encrypted balance
+Groth16 [10], which avoids on-chain depositor-withdrawer                 without decryption.
+associations. However, Tornado Cash has limitations, such as                - send: Invoked when a user transfers funds, updating the
+fixed deposit and withdrawal amounts, and functions as a                 sender’s and receiver’s encrypted balances.
+one-way protocol, making it seem more like a money laundering               - rotate: Invoked when a user updates their viewing key for their
+tool than a privacy solution for legitimate users. AZTEC [19]            encrypted balance, revoking third-party access and ensuring future
+addresses Tornado Cash’s fixed deposit issue using a UTXO-like           privacy.
+model [14] with "notes" for confidential transfers through join-split       Each action triggers an update from state 𝜙𝑡 to 𝜙𝑡 +1 . To ensure
+transactions. While it allows users to prove the equality of input and   efficient updates, our commitment scheme should utilize additive
+output notes without revealing decryption keys, its on-chain costs       homomorphism, allowing updates with just a few additions to 𝜙𝑡 .
+are high, with join-split transactions costing millions gas. AZTEC          State transitions in S are represented by a program P that
+supports auditability but lacks the ability for users to control the     takes the current state 𝜙𝑡 and necessary inputs to output the
+viewing key, leaving the third party with permanent access to the        next state 𝜙𝑡 +1 . Verifying the correctness of our protocol involves
+note’s value. Both projects appear inactive, highlighting practical      confirming that P produces the correct output at time 𝑡. By
+challenges in privacy solutions.                                         employing zkSNARKs, we can validate this execution efficiently
+                                                                         while preserving user privacy, as they do not require all inputs.
+3     PROPOSED PROTOCOL                                                  Furthermore, zkSNARKs allow us to delegate program execution
+This section presents the design goals and protocol design,              to off-chain, with the smart contract only needing to verify the
+abstracting the cryptographic primitives first and instantiating         proof and update the state, thus significantly reducing on-chain
+them later to illustrate flexible trade-offs among computation, cost,    operational costs.
+and security.                                                               Figure 1 shows the interaction flow among three main entities:
+                                                                               • User (U): Performs actions (deposit, withdraw, send, rotate).
+                                                                               • Trusted Backend (TB): Manage off-chain storage,
+3.1     Key Required Features
+                                                                                 computes state transitions, and generates proofs according
+Our protocol is designed to allow privacy-preserving transactions                to user requests.
+on public blockchains. To achieve this, we define the following core           • Blockchain (BC): Stores the smart contract, verifies proofs,
+design goals:                                                                    and maintains the current protocol state.
+      • Functionality: The protocol allows users to deposit,               An optional entity called a Relayer can submit transactions on
+        withdraw, and transfer funds to others.                          behalf of users, which is beneficial when users lack sufficient funds
+A Zero-Knowledge Proof-Based Protocol for Privacy-Preserving Transactions on Public Blockchains                           BSCI ’25, August 25, 2025, Hanoi, Vietnam
+
+
+                                                                                        the ProveDeposit algorithm. This proof and public values are then
+                                                                                        sent back to the User. Finally, the User calls the deposit() function
+                                                                                        on the smart contract with the proof, public values, the new state
+                                                                                        𝜙𝑡 +1 , and the deposit amount 𝑥.
+                                                                                           On the Blockchain, upon receiving a transaction from the User,
+                                                                                        the VerifyDeposit algorithm verifies the proof through a verifier
+                                                                                        contract. If valid, it checks the user’s fund amount. Upon successful
+                                                                                        verification, the smart contract emits the Deposited() event to TB,
+                                                                                        which updates its records.
+
+
+          Figure 1: Overview of the proposed protocol.
+
+
+for transaction fees (gas). Formally, our protocol consists of ten
+algorithms defined as follows, clearly indicating the executor in
+each subscript:
+     - SetUpTB (𝜆) → (pp, rec): Initializes public parameters pp for
+cryptographic primitives and an initial empty record rec of protocol
+requests, updated after each user interaction.
+     - KeyGenU (pp) → (sk, pk): Generates a user’s private/public
+key pair (sk, pk) for balance encryption.
+     - ProveDepositTB (pp, rec, pk, 𝑟, 𝑥, 𝜙𝑡 ) → (rec′, 𝜙𝑡 +1, 𝜋𝑑 ): Upon
+receiving a user’s deposit request with public key pk, randomness 𝑟 ,
+and deposit amount 𝑥, computes the next state 𝜙𝑡 +1 and produces
+the proof 𝜋𝑑 .
+     - ProveWithdrawTB (pp, rec, sk, 𝑥, rcp, 𝜙𝑡 ) → (rec′, 𝜙𝑡 +1, 𝜋 𝑤 ):
+Upon receiving a withdrawal request containing the user’s secret
+key sk, withdrawal amount 𝑥, and recipient address rcp, computes
+the next state 𝜙𝑡 +1 and generates proof 𝜋 𝑤 .
+     - ProveSendTB (pp, rec, sk𝑠 , pk𝑟 , 𝑥, 𝜙𝑡 ) → (rec′, 𝜙𝑡 +1, 𝜋𝑠 ): Given
+a send request containing sender’s secret key sk𝑠 , receiver’s public
+key pk𝑟 , and amount 𝑥, computes the next state 𝜙𝑡 +1 and generates
+the proof 𝜋𝑠 .
+     - ProveRotateTB (pp, rec, sk, 𝑟 ′, 𝜙𝑡 ) → (rec′, 𝜙𝑡 +1, 𝜋𝑟 ): When a                     Figure 2: Sequence diagram of the deposit process.
+user requests to rotate their viewing key with a new randomness
+𝑟 ′ , computes the updated state 𝜙𝑡 +1 and creates a corresponding                         Figure 3 outlines how a User withdraws funds from the
+proof 𝜋𝑟 .                                                                              protocol. They initiate a WITHDRAW request to TB, specifying a
+     - VerifyDepositBC (pp, 𝜙𝑡 , 𝜙𝑡 +1, 𝑥, pk, 𝜋𝑑 ) → {0, 1}: Verifies the              recipient address and necessary parameters. After obtaining proof
+deposit proof 𝜋𝑑 , ensuring correct commitment update based on                          and public values from the backend, these are forwarded to a
+the provided deposit amount 𝑥 and user’s public key pk.                                 Relayer, which then calls the withdraw() function on the smart
+     - VerifyWithdrawBC (pp, 𝜙𝑡 , 𝜙𝑡 +1, 𝑥, rcp, 𝜋 𝑤 ) → {0, 1}: Verifies               contract. The contract verifies the proof using the VerifyWithdraw
+the withdraw proof 𝜋 𝑤 , confirming the correct commitment update                       algorithm and transfers the funds to the recipient address, emitting
+corresponding to the withdrawal amount 𝑥 and recipient address                          the Withdrew() event to inform TB. Access to the proof and
+rcp.                                                                                    public values makes the process vulnerable to front-running
+     - VerifySendBC (pp, 𝜙𝑡 , 𝜙𝑡 +1, 𝜋𝑠 )      → {0, 1}: Checks the                     attacks; however, the recipient address is included as a redundancy
+correctness of send proof 𝜋𝑠 , ensuring valid transfers between                         constraint, ensuring any changes make the proof invalid and protect
+users.                                                                                  the user from such attacks.
+     - VerifyRotateBC (pp, 𝜙𝑡 , 𝜙𝑡 +1, 𝜋𝑟 ) → {0, 1}: Validates the rotate                 Figure 4 illustrates the process of transferring funds between
+proof 𝜋𝑟 , verifying that the user’s encrypted balance randomness                       users within the protocol. The sender must know the recipient’s
+update is correct.                                                                      identity and public key to send funds correctly. After obtaining
+     Figure 2 illustrates the process of a User depositing funds into                   the necessary proof and values, the sender can execute the send
+our protocol. The User starts by generating a public/private key pair                   action directly or through a Relayer for added privacy. Once
+using the KeyGen algorithm and sends a request to TB for a deposit                      the transaction is successful, an event Sent() is emitted on the
+action. The backend queries the current state of the contract on the                    blockchain, allowing TB to update its database. It’s important
+Blockchain and executes the program P based on the provided                             to note that the total funds locked in the smart contract remain
+information to compute the next state and generate proof using                          unchanged throughout this process.
+BSCI ’25, August 25, 2025, Hanoi, Vietnam                                                                      Hao Pham-Duc, Khang Vo-Vi, and Khuong Nguyen-An
+
+
+                                                                                    call the rotate() function on the smart contract, which verifies the
+                                                                                    proof and updates the commitment before emitting a Rotated()
+                                                                                    event. Consequently, the third party can no longer verify the User’s
+                                                                                    balance.
+
+
+
+
+   Figure 3: Sequence diagram of the withdrawal process.
+
+
+
+
+                                                                                    Figure 5: Sequence diagram of the viewing key rotation
+                                                                                    process.
+
+
+
+                                                                                    3.3       A Concrete Construction
+                                                                                    In this section, we provide a concrete instantiation of the protocol
+                                                                                    introduced earlier, discussing trade-offs among three schemes for
+Figure 4: Sequence diagram of the fund transfer process                             each cryptographic component and selecting the best one based on
+within the protocol.                                                                specific criteria.
+                                                                                       We evaluate three additively homomorphic encryption schemes
+                                                                                    against four criteria in Table 1. CKKS [6] supports complex numbers
+   Users may want to reveal their balance without withdrawing all
+                                                                                    but is deemed "not ZK-friendly" due to its constraints. Paillier [15],
+funds. Revealing plaintext encrypted with probabilistic encryption
+                                                                                    based on the decisional composite residuosity assumption, requires
+doesn’t require compromising the private key; only the randomness
+                                                                                    a modulus 𝑛 of at least the product of two 1024-bit primes,
+needs to be disclosed, which is unique for each message. It’s
+                                                                                    making it inefficient for zkSNARK circuits. In contrast, Exponential
+essential to allow users to revoke this permission to keep
+                                                                                    ElGamal (EE) [1], which operates on finite fields, integrates well
+their balance private. Many homomorphic cryptosystems enable
+                                                                                    with zkSNARK circuits when parameters are chosen correctly.
+modifying the randomness using their properties. For instance, in
+                                                                                    Consequently, we selected EE as our encryption scheme.
+the EE cryptosystem, where E is the encryption function, we have
+the following useful property
+                                                                                    Table 1: Comparison of three homomorphic encryption
+     E(𝑚, 𝑟 1 ) × E(0, 𝑟 2 ) = (𝑔𝑟 1 , 𝑔𝑚 · pk𝑟 1 ) × (𝑔𝑟 2 , 𝑔0 · pk𝑟 2 )          schemes: CKKS, Paillier, and EE.
+                             = (𝑔𝑟 1 +𝑟 2 , 𝑔𝑚 · pk𝑟 1 +𝑟 2 ) = E(𝑚, 𝑟 1 + 𝑟 2 ).
+                                                                                      Scheme         Homomorphic   Plaintext domain   Ciphertext domain        ZK-Friendly
+Users can rotate their randomness from 𝑟 1 to 𝑟 1 + 𝑟 2 without                       CKKS [6]          Fully             C           (Z𝑝 [𝑋 ]/(𝑋 𝑛 + 1) ) 2        ✗
+re-encrypting the balance. This allows our protocol to help users                    Paillier [15]     Additive          Z𝑛                   Z𝑛 2                  ✗
+                                                                                       EE [1]          Additive          F𝑝                    F𝑝2                 ✓
+grant and revoke balance verification permissions, which we will
+refer to as the user’s viewing key.
+   Figure 5 shows the key rotation process. The User first reveals                     For the commitment scheme, we evaluate three candidates and
+their balance and randomness to a third party, who verifies this via                five criteria in Table 2. While all have constant-size commitments,
+an on-chain commitment. To revoke this access, the User requests                    Merkle Tree [13] incurs logarithmic proof size and verification time,
+a ROTATE action from TB, providing new randomness. They then                        leading to higher on-chain operational costs as user numbers grow.
+A Zero-Knowledge Proof-Based Protocol for Privacy-Preserving Transactions on Public Blockchains                                     BSCI ’25, August 25, 2025, Hanoi, Vietnam
+
+
+The homomorphic property reduces the commitment update cost,                                    Transfers between users utilize homomorphic properties to
+while selective opening enables smart contracts to verify specific                          adjust two ciphertexts: decreasing the sender’s balance and
+records without recomputing the entire commitment. We select                                increasing the recipient’s. The user generating the proof confirms
+KZG [11] as our commitment scheme based on these criteria.                                  knowledge of the sender’s secret key, ensuring the transferred
+                                                                                            amount aligns with the sender’s balance and the new recipient
+Table 2: Comparison of three commitment schemes:                                            ciphertext.
+Pedersen, Merkle Tree, and KZG.                                                                 At the time 𝑡, if a user, whose encrypted balance is v𝑖 and secret is
+                                                                                            𝑟 , wants to reveal their balance to a third party T , they can issue the
+ Scheme          Commitment       Proof size     Verification   Selective     Homomorphic   trusted backend an opening proof 𝜋, which proves that 𝑃 v (𝜔 𝑖 ) = v𝑖 .
+                 size                            time           opening
+ Pedersen [16]   O (1)            O (1)          O (1)          ✗             ✓
+                                                                                            They send (𝜋, v𝑖 , pk, 𝑟, 𝑥) to T to claim that their balance is 𝑥. At a
+ Merkle          O (1)            O (log 𝑛)      O (log 𝑛)      ✓             ✗             time 𝑡 ′ > 𝑡, T can verify this claim by doing the following steps:
+ Tree [13]
+ KZG [11]        O (1)            O (1)          O (1)          ✓             ✓                  (1) Check if 𝑔𝑟 match the on-chain value.
+                                                                                                                           ?
+                                                                                                (2) Check if 𝑔𝑥 × pk𝑟 = v𝑖 .
+   For the zero-knowledge proving system, we focus on proof                                     (3) Perform KZG proof verification by checking this equation
+                                                                                                                                               ?
+size and verification cost, as shown in Table 3 for two candidates:                                  𝑒 (𝜋, (𝜏 − 𝜔 𝑖 )𝐺 2 ) + 𝑒 (𝜙𝑡 ′ − 𝜙𝑡 , 𝐺 2 ) = 𝑒 (𝜙𝑡 ′ − v𝑖 𝐺 1, 𝐺 2 ),
+Plonk [9] and Groth16 [10]. Groth16 has smaller proof size and                              where 𝑒 (·, ·) is the bilinear pairing function and 𝐺 1, 𝐺 2 are the
+lower on-chain verification costs but requires a trusted setup for                          generators of the elliptic curve groups generated in the KZG setup.
+each circuit. Since the circuit, P, is fixed, the trusted setup can                            We will explain the third step as follows. Let 𝑃v (𝑥) and 𝑃v′ (𝑥)
+be conducted once and reused for all users, making Groth16 the                              be the polynomials corresponding to 𝜙𝑡 and 𝜙𝑡 ′ , respectively. If
+preferred option.                                                                           𝑃v (𝜔 𝑖 ) = 𝑃v′ (𝜔 𝑖 ) = v𝑖 , then the proof 𝜋 ′ for 𝑃 v′ (𝜔 𝑖 ) = v𝑖 can be
+                                                                                            computed as
+Table 3: Comparison of two zkSNARK proving systems:
+                                                                                                               𝑃 ′ (𝜏) − v𝑖         𝑃 ′ (𝜏) − 𝑃v (𝜏)
+Plonk, Plonk (fast prover version), and Groth16.                                                         𝜋′ = v             𝐺1 = 𝜋 + v               𝐺1 .
+                                                                                                                 𝜏 −𝜔   𝑖                𝜏 − 𝜔𝑖
+        Scheme           Proof size (bytes)    Verification cost (gas)   Trusted setup
+                                                                                            To verify 𝜋 ′ , one can compute the bilinear 𝑒 (𝜋 ′, (𝜏 − 𝜔 𝑖 )𝐺 2 ) as
+                                                     ≈ 223000
+                                                                                             𝑒 (𝜋 ′, (𝜏 − 𝜔 𝑖 )𝐺 2 ) = 𝑒 (𝜋, (𝜏 − 𝜔 𝑖 )𝐺 2 ) + 𝑒 (𝑃v′ (𝜏) − 𝑃v (𝜏))𝐺 1, 𝐺 2
+       Plonk [9]                640                                         universal                                                                                         
+   Plonk (fast prover)          768                  ≈ 300000               universal
+      Groth16 [10]              256                  ≈ 200000              per-circuit
+                                                                                                                   = 𝑒 (𝜋, (𝜏 − 𝜔 𝑖 )𝐺 2 ) + 𝑒 (𝜙𝑡 ′ − 𝜙𝑡 , 𝐺 2 ).
+
+   We represent each user’s balance as ciphertext using the EE                                 The protocol supports a “secret rotation” step, allowing users to
+scheme. Each user generates a secret key sk and a public key pk =                           change the randomness encrypting their balance after revealing it
+𝑔sk . The balance 𝑥 is encrypted as 𝑔𝑟 , 𝑔𝑥 · pk𝑟 for a random 𝑟 .                          to a trusted party. This is done by multiplying the ciphertext by an
+                                                    
+These ciphertexts are stored in a 𝑑-length vector v, while a KZG                            off-chain blinding term, revoking previous visibility. It also involves
+commitment succinctly represents it on-chain. We encode v as                                updating the polynomial commitment and generating proof for
+a polynomial 𝑃 v (𝑥) such that 𝑃 v (𝜔 𝑖 ) = v𝑖 and commit to it by                          on-chain verification.
+evaluating 𝑃v (𝑥) at a secret point 𝜏. The group element 𝑃v (𝜏) 𝐺                              In summary, these actions illustrate how a private transaction
+acts as the state of program P, denoted 𝜙. Any change in user                               framework can be achieved: EE ensures balance confidentiality,
+balances updates v and 𝑃v (𝑥) in a way that can be proven via a                             KZG commitments represent an entire ledger in one group
+zero-knowledge argument.                                                                    element, and Groth16 guarantees verified on-chain updates without
+   The remaining of this section will describe the overview                                 revealing sensitive information. This combination proves the
+processes of each action in the protocol under this concrete                                protocol’s feasibility on a public blockchain.
+construction. These processes will be realized by the algorithms
+defined in Section 4.
+                                                                                            4     EXPERIMENTS AND EVALUATION
+   When a user deposits 𝑥 coins, they select a new index 𝑖 and                              This section outlines the experimental setup and implementation
+encrypt the amount with their public key pk. The backend updates                            of our proposed protocol, aiming to evaluate its feasibility and
+the polynomial 𝑃 𝑣 so that 𝑃 𝑣 (𝜔 𝑖 ) = 𝑔𝑥 · pk𝑟 and computes the                           performance. The source code will be available upon reasonable
+corresponding commitment. Finally, it prepares a Groth16 proof to                           request.
+verify the update’s consistency.
+   Withdrawals follow a reverse pattern. The backend identifies                             4.1     Development Environment
+the ciphertext for the user’s balance by locating the index 𝑖 for their                     We implement TB with Rust (rustc 1.81.0 (eeb90cda1 2024-09-04))
+public key. It checks if the balance can cover the withdrawal, then                         and Solidity (v0.8.23+commit.f704f362). Our experiments were
+modifies the ciphertext to reduce 𝑥 coins by adjusting the committed                        conducted on a MacBook M1 Pro with 16 GB RAM. The operating
+polynomial at position 𝑖. This change is proven in zero-knowledge,                          system is macOS Sequoia 15.3. The Ethereum networks used in this
+ensuring only the secret key holder can alter the ciphertext and that                       experiment are local networks (Shanghai hard fork) and Optimism.
+the on-chain state aligns with the withdrawal. Once verified, the                           We use Anvil (v0.3.0) to fork the state of Optimism from block
+contract releases the 𝑥 coins to the recipient address and updates                          131843560. The deployment scripts and test cases are simulated
+the protocol’s commitment.                                                                  using Foundry (v0.3.0).
+BSCI ’25, August 25, 2025, Hanoi, Vietnam                                                                                    Hao Pham-Duc, Khang Vo-Vi, and Khuong Nguyen-An
+
+
+4.2       Implementaion Details                                                             Algorithm 2 withdraw state transition
+The implementation consists of two main modules: off-chain and                               1: function withdraw(skey, balance, amount, recipient, 𝜙𝑡 )
+on-chain. In the off-chain module, we implement the state transition                         2:    pkey ← 𝑔skey
+                                                                                             3:    if index_of [pkey] does not exist then
+logic based on the construction described in 3.2. This logic is                              4:        return Fail(“Public key not found”)
+compiled into an ELF file for Succint RISC-V zkVM using the SP1                              5:    end if
+                                                                                             6:    𝑖 ← index_of [pkey]
+framework (v4.1.0). The off-chain module manages state transitions                           7:    𝑚 ← Dec(skey, (t𝑖 , v𝑖 ), balance) .
+                                                                                             8:    if amount > 𝑚 then
+and generates proofs. It is stateful, maintaining all records for                            9:        return Fail(“Insufficient amount”)
+reconstructing S to its latest state. The following paragraphs outline                      10:     end if
+                                                                                            11:    𝜙𝑡 +1 ← 𝜙𝑡 + ℓ𝑖 × v𝑖 × (𝑔 −amount − 1)                    ⊲ ℓ𝑖 is the 𝑖 -th Lagrange basis
+how each action is performed.                                                               12:     v𝑖 ← v𝑖 × 𝑔 −amount
+   The program is configured for a maximum of deg users, matching                           13:    𝑡𝑚𝑝 ← recipient                                      ⊲ Redundancy to commit recipient
+                                                                                            14:     return 𝜙𝑡 +1
+the highest degree of commitable polynomials. It initializes a                              15: end function
+counter cnt to track user numbers and two deg-length arrays, t
+for encrypted randomness and v for encrypted balances. A hash
+map index_of maps each user’s public key to its index, optimizing                           Algorithm 3 send State Transition
+lookups from O (𝑛) to O (1). Initially, cnt, t, and v are set to zero,                       1: function send(skeysender , pkeyreceiver , balance, amount, 𝜙𝑡 )
+making 𝜙 0 the commitment of 𝑃 (𝑥) ≡ 0.                                                      2:    pkeysender ← 𝑔skeysender
+                                                                                             3:    if index_of [pkeysender ] does not exist then
+   We omit the detailed proof generation process, as the SP1                                 4:         return Fail(“Sender public key not found”)
+                                                                                             5:    end if
+framework manages it automatically. Instead, we focus on state                               6:    if index_of [pkeyreceiver ] does not exist then
+computation through four actions: deposit, withdraw, send, and                               7:         return Fail(“Receiver public key not found”)
+                                                                                             8:    end if
+rotate. Algorithms 1, 2, 3, and 4 outline the logic for these actions in                     9:    𝑖𝑠 ← index_of [pkeysender ]
+the off-chain module. After each execution, a computational trace                           10:    𝑖𝑟 ← index_of [pkeyreceiver ]
+                                                                                            11:    𝑚 ← Dec(skeysender , (t𝑖𝑠 , v𝑖𝑠 ), balance)
+is generated and sent to the SP1 prover engine for proof generation.                        12:     if amount > 𝑚 then
+These processes are ProveDeposit, ProveWithdraw, ProveSend, and                             13:         return Fail(“Insufficient balance”)
+                                                                                            14:     end if
+ProveRotate, respectively.                                                                  15:     𝑃𝑠 ← ℓ𝑖𝑠 × v𝑖𝑠 × (𝑔 −amount − 1)
+   Algorithm 1 (deposit) encrypts the deposit amount and updates                            16:     𝑃𝑟 ← ℓ𝑖𝑟 × v𝑖𝑟 × (𝑔amount − 1)
+                                                                                            17:    𝜙𝑡 +1 ← 𝜙𝑡 + 𝑃𝑠 + 𝑃𝑟
+the commitment using a Lagrange-basis-scaled term from the                                  18:     v𝑖𝑠 ← v𝑖𝑠 × 𝑔 −amount
+ciphertext, leveraging the additively homomorphic property of the                           19:     v𝑖𝑟 ← v𝑖𝑟 × 𝑔amount
+KZG commitment scheme. Conversely, Algorithm 2 (withdraw)                                   20:     return 𝜙𝑡 +1
+                                                                                            21: end function
+verifies the sender’s balance, checks the validity of the requested
+amount, and then homomorphically subtracts that amount from
+the commitment. While balance verification can use a range proof                            Algorithm 4 rotate State Transition
+to avoid decryption, we simplify by decrypting the ciphertext to                             1: function rotate(skey, 𝑟 ′ , 𝜙𝑡 )
+compare the balance with the requested amount.                                               2:    pkey ← 𝑔skey
+                                                                                             3:    if index_of [pkey] does not exist then
+                                                                                             4:        return Fail(“Public key not found”)
+                                                                                             5:    end if
+Algorithm 1 deposit state transition                                                         6:    𝑖 ← index_of [pkey]
+                                                                                                                                    ′
+ 1: function deposit(pkey, 𝑟, amount, 𝜙𝑡 )                                                   7:    𝜙𝑡 +1 ← 𝜙𝑡 + ℓ𝑖 × v𝑖 × (pkey𝑟 − 1)
+                                                                                                                 ′
+ 2:    if cnt ≥ deg then                                                                     8:    t𝑖 ← t𝑖 × 𝑔 𝑟
+ 3:        return Fail(“Total user exceed limit”)                                                                       ′
+                                                                                             9:    v𝑖 ← v𝑖 × pkey𝑟
+ 4:    end if
+                                                                                            10:     return (𝜙𝑡 +1 , 𝑖 )
+ 5:    (𝑡, 𝑣) ← Enc(pkey, amount, 𝑟 )                                                       11: end function
+ 6:    tcnt ← 𝑡
+ 7:    vcnt ← 𝑣
+ 8:    if index_of [pkey] exists then
+ 9:        return Fail(“Public key already exists”)
+10:    end if                                                                               users. It stores the verification key, the Groth16 verifier contract
+11:    index_of [pkey] ← cnt.                                                               address, the current state 𝜙, and a mapping of public keys to
+12:    𝜙𝑡 +1 ← 𝜙𝑡 + ℓcnt × 𝑣                          ⊲ ℓcnt is the cnt-th Lagrange basis
+13:    cnt ← cnt + 1.                                                                       encrypted randomness. Algorithms 5, 6, 7, and 8 outline the
+14:    return 𝜙𝑡 +1
+15: end function                                                                            functions deposit, withdraw, send, and rotate for use by Users or
+                                                                                            Relayer.
+   Algorithm 3 (send) manages the send action between users                                 4.3       Experiment Results
+by checking the sender’s balance and adjusting it accordingly.
+Algorithm 4 (Rotate) handles key rotation by multiplying the
+user’s ciphertext with a zero-value ciphertext, ensuring the balance                                      Table 4: Experiment results when deg = 16.
+remains unchanged. The four actions are merged into a single
+program that uses branch logic to execute the user-requested                                     Action        Execution      Proving         Proof Size     Verifying Time      Gas
+                                                                                                               Time (ms)      Time (s)        (bytes)        (ms)                (units)
+operation, shrinking contract storage from four verification keys
+                                                                                                 Deposit       92.48          515.53          260            653.27              276395
+to just one for the main program.                                                                Withdraw      170.85         654.87          260            669.24              244582
+   The on-chain module includes a smart contract that updates                                    Send          199.21         901.56          260            642.66              209760
+                                                                                                 Rotate        90.83          640.11          260            586.98              209760
+the state of S upon validating proofs and public values from
+A Zero-Knowledge Proof-Based Protocol for Privacy-Preserving Transactions on Public Blockchains                                                            BSCI ’25, August 25, 2025, Hanoi, Vietnam
+
+
+Algorithm 5 deposit on smart contract                                                                                             ·107
+
+ 1: function deposit(publicValues, proof)                                                                                   2.5            deposit
+ 2:    Call Groth16 verifier contract to verify proof. Revert if verification fails.                                                        send
+ 3:    Decode 𝜙𝑡 , 𝜙𝑡 +1 , amount, pkey, 𝑡 from publicValues.                                                                             withdraw
+ 4:    if 𝜙𝑡 ≠ 𝜙 then                                                                                                        2             rotate
+
+
+
+
+                                                                                                    Circuit Size (cycles)
+ 5:        return Fail(“Current state does not match”)
+ 6:    end if
+ 7:    if amount ≠ 𝑚𝑠𝑔.𝑣𝑎𝑙𝑢𝑒 then
+ 8:        return Fail(“Amount does not match”)                                                                             1.5
+ 9:    end if
+10:    𝜙 ← 𝜙𝑡 +1
+11:    publicKeyToRandomness [pkey] ← 𝑡
+12:    Emit event Deposited( ) .
+                                                                                                                             1
+13: end function
+
+                                                                                                                            0.5
+Algorithm 6 withdraw on smart contract
+ 1: function withdraw(publicValues, proof)                                                                                           24   25     26 27 28 29 210 211                 212
+ 2:    Call Groth16 verifier contract to verify proof. Revert if verification fails.
+                                                                                                                                                Maximum Number of Users
+ 3:    Decode 𝜙𝑡 , 𝜙𝑡 +1 , amount,recipient from publicValues.
+ 4:    if 𝜙𝑡 ≠ 𝜙 then
+ 5:        return Fail(“current state does not match”)
+ 6:    end if                                                                                                                             Figure 6: Circuit size.
+ 7:    if amount > 𝑡ℎ𝑖𝑠.𝑏𝑎𝑙𝑎𝑛𝑐𝑒 then
+ 8:        return Fail(“Insufficient balance”)
+ 9:    end if
+10:    Transfer amount wei to recipient.                                                the highest due to multiple addition operations on commitments.
+11:    𝜙 ← 𝜙𝑡 +1
+12:    Emit event Withdrew( ) .
+                                                                                        While verification time and on-chain costs remain stable, proving
+13: end function                                                                        time increases linearly with circuit size, causing increased resource
+                                                                                        consumption for TB. To address this, we can deploy multiple
+Algorithm 7 send on smart contract                                                      protocol instances in parallel, using an intermediary protocol for
+                                                                                        cross-instance communication.
+1: function send(publicValues, proof)
+2:    Call Groth16 verifier contract to verify proof. Revert if verification fails.        The results indicate that proving time is the main bottleneck
+3:    Decode 𝜙𝑡 , 𝜙𝑡 +1 from publicValues.                                              of our protocol. This overhead can be reduced with specialized
+4:    if 𝜙𝑡 ≠ 𝜙 then
+5:        return Fail(“Current state does not match”)                                   hardware accelerators or a decentralized proving network to
+6:    end if                                                                            parallelizes proof generation. On-chain gas costs remain high, but
+7:    𝜙 ← 𝜙𝑡 +1
+8:    Emit event Sent() .                                                               the proof size and verification process are efficient. Our current
+9: end function
+                                                                                        progress lays the groundwork for circuit optimization and hardware
+                                                                                        accelerators to lower off-chain operation costs.
+Algorithm 8 rotate on smart contract
+ 1: function rotate(publicValues, proof)
+                                                                                        4.4       Comparison
+ 2:    Call Groth16 verifier contract to verify proof. Revert if verification fails.
+ 3:    Decode 𝜙𝑡 , 𝜙𝑡 +1 , pkey, 𝑡 ′ from publicValues.
+ 4:    if 𝜙𝑡 ≠ 𝜙 then                                                                   Table 5: Comparison between Tornado Cash, Aztec, and our
+ 5:        return Fail(“Current state does not match”)
+ 6:    end if                                                                           protocol.
+ 7:    if publicKeyToRandomness [pkey] does not exist then
+ 8:        return Fail(“Unregistered public key”)
+ 9:    end if                                                                             Scheme                             Deposit/          Viewing       Deposit      Transfer         Withdraw
+10:    publicKeyToRandomness [pkey] ← 𝑡 ′                                                                                    withdrawal        key           gas          gas              gas
+11:    𝜙 ← 𝜙𝑡 +1
+12:    Emit event Rotated() .                                                             Tornado                            Fixed             No            972795       N/A              329388
+13: end function                                                                          Cash [17]
+                                                                                          Aztec [19]                         Flexible          Permanent     1088600      938471           969751
+                                                                                          Our protocol                       Flexible          Revocable     276395       209760           244582
+
+   Table 4 shows performance results for up to 16 users, with
+average times calculated over 100 runs. Execution Time (in                                 Although private transactions aren’t natively supported, our
+milliseconds) increases with update complexity; the send action,                        protocol can be deployed on public blockchains instead of forking to
+which modifies two ciphertexts, has a notably higher time.. Proving                     private chains like Hyperledger [4] and ZCash [5]. Its feasibility was
+Time (in seconds) grows linearly with circuit size, with the send                       shown in experiments on EVM-based blockchains. User experience
+action taking the longest at 901.56 s due to its larger circuit.                        can be enhanced with front-end solutions that simplify balance
+Proof Size remains at 260 bytes for all actions, demonstrating                          management and interactions, making private transactions as easy
+the efficiency of the Groth16 protocol. Verifying Time (in ms) and                      as regular ones.
+Gas (in units) for proof verification and smart contract updates are                       We compare our protocol with Tornado Cash and Aztec, both
+low and not affected by action complexity.                                              deployed on the Ethereum mainnet, as summarized in Table 5.
+   To assess scalability, we measure circuit size in zkVM cycles as                     For the Deposit/Withdrawal criterion, Tornado Cash’s reliance
+user numbers increase. More cycles indicate greater complexity and                      on Merkle tree leaves limits it to fixed amounts, while Aztec
+longer proving times. Results from Figure 6 show that circuit size                      permits arbitrary deposits and withdrawals if users prove equal
+grows linearly with users, with the send circuit’s complexity being                     total amounts in a joint-split transaction. Our approach, using
+BSCI ’25, August 25, 2025, Hanoi, Vietnam                                                                              Hao Pham-Duc, Khang Vo-Vi, and Khuong Nguyen-An
+
+
+homomorphic ciphertexts, allows flexible transactions by tracking                        References
+user balances with the ability to add and subtract arbitrary values.                      [1] Ronald Cramer, Rosario Gennaro, and Berry Schoenmakers. 1997. A secure and
+   About the ability for users to reveal their balances to third                              optimally efficient multi-authority election scheme. Eur. Trans. Telecommun. 8, 5
+                                                                                              (1997), 481–490. doi:10.1002/ETT.4460080506
+parties, Tornado Cash requires users to disclose their nullifier and                      [2] John R. Douceur. 2002. The Sybil Attack. In Peer-to-Peer Systems, Peter Druschel,
+secret value, making it risky to share. In contrast, Aztec allows safe                        Frans Kaashoek, and Antony Rowstron (Eds.). Springer, Berlin, Heidelberg,
+                                                                                              251–260. doi:10.1007/3-540-45748-8_24
+sharing of viewing keys while keeping spending keys secret, but its                       [3] Belen Sağlam et al. 2020. A Data-Driven Analysis of Blockchain Systems’
+viewing keys cannot be rotated or revoked, permanently exposing                               Public Online Communications on GDPR. In 2020 IEEE International Conference
+the balance. Our protocol enhances this by allowing viewing key                               on Decentralized Applications and Infrastructures (DAPPS). 22–31. doi:10.1109/
+                                                                                              DAPPS49028.2020.00003
+rotation through the ProveRotate algorithm.                                               [4] Elli Androulaki et al. 2018. Hyperledger fabric: a distributed operating system for
+   About gas costs, Tornado Cash updates its Merkle tree per                                  permissioned blockchains. In Proceedings of the Thirteenth EuroSys Conference,
+deposit1 and verifies a Merkle proof per withdrawal2 , resulting in                           EuroSys 2018, Porto, Portugal, April 23-26, 2018, Rui Oliveira, Pascal Felber, and
+                                                                                              Y. Charlie Hu (Eds.). ACM, 30:1–30:15. doi:10.1145/3190508.3190538
+logarithmic complexity. Aztec’s joint-split transactions3,4,5 require                     [5] Eli Ben-Sasson et al. 2014. Zerocash: Decentralized Anonymous Payments from
+linear complexity for proof verification. In contrast, our protocol                           Bitcoin. In 2014 IEEE Symposium on Security and Privacy. 459–474. doi:10.1109/
+                                                                                              SP.2014.36
+uses zkSNARK proof verification, achieving constant complexity.                           [6] Jung Hee Cheon et al. 2017. Homomorphic Encryption for Arithmetic of
+Our deposit transactions cost approximately 280K gas, reducing                                Approximate Numbers. In Advances in Cryptology – ASIACRYPT 2017, Tsuyoshi
+costs by 71.6% compared to Tornado Cash and 74.6% compared to                                 Takagi and Thomas Peyrin (Eds.). Springer, Cham, 409–437. doi:10.1007/978-3-
+                                                                                              319-70694-8_15
+Aztec. Withdrawal transactions require half the gas of Tornado                            [7] Jiawen Kang et al. 2019. Blockchain for Secure and Efficient Data Sharing in
+Cash and one-fourth that of Aztec. For fund transfers, Tornado                                Vehicular Edge Computing and Networks. IEEE Internet Things J. 6, 3 (2019),
+Cash does not support this, and Aztec costs nearly 1 million gas,                             4660–4670. doi:10.1109/JIOT.2018.2875542
+                                                                                          [8] Meng Zhang et al. 2019. Protecting Data Privacy for Permissioned Blockchains
+while our protocol only requires around 240K gas, about one-fifth                             using Identity-Based Encryption. 602–605. doi:10.1109/ITNEC.2019.8729244
+of Aztec’s cost.                                                                          [9] Ariel Gabizon, Zachary J. Williamson, and Oana Ciobotaru. 2019. PLONK:
+                                                                                              Permutations over Lagrange-bases for Oecumenical Noninteractive arguments
+   Finally, we discuss about trusted setup requirement. Both                                  of Knowledge. IACR Cryptol. ePrint Arch. (2019), 953. https://eprint.iacr.org/
+Tornado Cash and our protocol offer flexibility in proof system                               2019/953
+selection, balancing computational cost and transparency. In                             [10] Jens Groth. 2016. On the Size of Pairing-Based Non-interactive Arguments. In
+                                                                                              Advances in Cryptology – EUROCRYPT 2016, Marc Fischlin and Jean-Sébastien
+contrast, Aztec’s customized proof system necessitates a trusted                              Coron (Eds.). Springer, Berlin, Heidelberg, 305–326. doi:10.1007/978-3-662-49896-
+setup. Our concrete construction uses Groth16 for efficient                                   5_11
+verification, with this trusted setup being a one-time process                           [11] Aniket Kate, Gregory M. Zaverucha, and Ian Goldberg. 2010. Constant-Size
+                                                                                              Commitments to Polynomials and Their Applications. In Advances in Cryptology
+executed via multi-party computation to eliminate any toxic waste.                            - ASIACRYPT 2010, Masayuki Abe (Ed.). Springer Berlin Heidelberg, Berlin,
+                                                                                              Heidelberg, 177–194. doi:10.1007/978-3-642-17373-8_11
+                                                                                         [12] Greg Maxwell. 2013. CoinJoin: Bitcoin privacy for the real world. Retrieved
+5    CONCLUSION                                                                               September 15, 2024 from https://bitcointalk.org/?topic=279249
+                                                                                         [13] Ralph C. Merkle. 1988. A Digital Signature Based on a Conventional Encryption
+This work demonstrates how a ZKP-based protocol can ensure                                    Function. In Advances in Cryptology — CRYPTO ’87, Carl Pomerance (Ed.).
+confidentiality for transactions on a public blockchain. By using                             Springer, Berlin, Heidelberg, 369–378. doi:10.1007/3-540-48184-2_32
+encrypted balances and zkSNARK proofs, sensitive information                             [14] Satoshi Nakamoto. 2008. Bitcoin: A Peer-to-Peer Electronic Cash System. Retrieved
+                                                                                              December 12, 2024 from https://bitcoin.org/bitcoin.pdf
+remains hidden in a public ledger. The design supports                                   [15] Pascal Paillier. 1999. Public-Key Cryptosystems Based on Composite Degree
+various cryptographic primitives, allowing flexibility in choosing                            Residuosity Classes. In Advances in Cryptology — EUROCRYPT ’99, Jacques Stern
+encryption or commitment schemes based on performance and                                     (Ed.). Springer, Berlin, Heidelberg, 223–238. doi:10.1007/3-540-48910-X_16
+                                                                                         [16] Torben Pryds Pedersen. 1992. Non-Interactive and Information-Theoretic
+trust assumptions. This modular approach, paired with off-chain                               Secure Verifiable Secret Sharing. In Advances in Cryptology — CRYPTO ’91, Joan
+execution and constant-size commitments, enables scalability                                  Feigenbaum (Ed.). Springer, Berlin, Heidelberg, 129–140. doi:10.1007/3-540-
+                                                                                              46766-1_9
+without bloating on-chain storage. While hardware acceleration                           [17] Alexey Pertsev, Roman Semenov, and Roman Storm. 2019. Tornado Cash Privacy
+could improve proof-generation, our experiments indicate that                                 Solution. Retrieved October 5, 2024 from https://berkeley-defi.github.io/assets/
+succinct on-chain verification remains highly efficient. Thus, this                           material/Tornado%20Cash%20Whitepaper.pdf
+                                                                                         [18] Ronald L. Rivest, Adi Shamir, and Yael Tauman. 2001. How to Leak a Secret. In
+work lays the groundwork for integrating blockchain technology                                Advances in Cryptology — ASIACRYPT 2001, Colin Boyd (Ed.). Springer, Berlin,
+into financial systems that require strong privacy.                                           Heidelberg, 552–565. doi:10.1007/3-540-45682-1_32
+                                                                                         [19] Zachary J Williamsonl. 2018. The aztec protocol. Retrieved September 30, 2024
+                                                                                              from https://github.com/AztecProtocol/AZTEC
+Acknowledgments
+This work was supported by the “Scientific Research and Innovation
+Program” of Ho Chi Minh University of Technology under the grant
+No. SVKSTN-2024-KH&KTMT 56. The authors acknowledge Ho
+Chi Minh City University of Technology (HCMUT), VNU-HCM,
+for supporting this study.
+
+
+1 https://etherscan.io/tx/0x5053edc81c29fda2e1a304aa2fb096a0a53d0551b1b6eaffbbe829b0ac7d22dc
+2 https://etherscan.io/tx/0x8a161d653a5d4b243fa261d0b9ea83edd7c44677015eec963a01ecd57906b320
+3 https://etherscan.io/tx/0xc25ee135911ed0ab68e1d63ffad6abd1df7b11fc787c6044995a16dcad8f9bb8
+4 https://etherscan.io/tx/0x6cb6bccb6d51445ce026dd76b8526e8014a6a276255d22e4f5be26f8efb891fb
+5 https://etherscan.io/tx/0xf9a101682c637f7741f281c858527d17036f4df284b7064bd1ca44531ab88374
+
